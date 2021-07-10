@@ -1,3 +1,3 @@
 # **freelance-front**
 
-frond-end development for freelance-online
+front-end development for freelance-online
