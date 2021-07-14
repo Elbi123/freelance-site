@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const jobRouter = require("./routes/job.route");
+const BadRequestError = require("./utils/error");
+const errorController = require("./controllers/error.controller");
 
 const app = express();
 
@@ -13,5 +15,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use("/jobs", jobRouter);
+
+// error middleware - unhadled route
+app.use("*", (req, res, next) => {
+    next(
+        new BadRequestError(
+            `Can't find ${req.originalUrl} on this server!`,
+            404
+        )
+    );
+});
+
+// global error handler
+app.use(errorController);
 
 module.exports = app;
