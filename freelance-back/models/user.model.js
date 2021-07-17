@@ -35,6 +35,18 @@ const userSchema = new mongoose.Schema({
     },
 });
 
+userSchema.pre("save", function (next) {
+    let userName = this.userName;
+    await this.constructor.findOne(
+        { userName: userName },
+        function (err, user) {
+            if (user) {
+                throw Error("Username is already taken");
+            }
+        }
+    );
+    next();
+});
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
