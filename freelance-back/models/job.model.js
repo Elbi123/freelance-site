@@ -13,7 +13,7 @@ const jobSchema = new Schema(
         },
         slug: {
             type: String,
-            required: true,
+            // required: true,
             unique: true,
         },
         description: {
@@ -49,21 +49,19 @@ const jobSchema = new Schema(
     { timestamps: true }
 );
 
-const Job = mongoose.model("Job", jobSchema);
-
 // document middleware
 jobSchema.pre("save", async function (next) {
-    await Job.find({ slug: this.slug }, (err, job) => {
-        if (!job) {
-            this.slug = slugify(this.title, { lower: true });
-        } else {
-            let s1 = this.title.split(" ");
+    this.slug = slugify(this.title, { lower: true });
+    await this.constructor.findOne({ slug: this.slug }, function (err, slug) {
+        if (slug) {
+            let s1 = slug.split(" ");
             let s2 = s1.slice(0, s1.length - 1);
             let s3 = s2.join(" ");
             this.slug = slugify(s3, { lower: true });
         }
-        next();
     });
+    next();
 });
+const Job = mongoose.model("Job", jobSchema);
 
 module.exports = Job;
