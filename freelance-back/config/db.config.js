@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
+const Role = require("./../models/role.model");
+
 dotenv.config();
 
 const dbString = process.env.DB_CONNECTION_STRING.replace(
@@ -17,6 +19,9 @@ const connectDB = async () => {
             useFindAndModify: false,
             useCreateIndex: true,
         });
+
+        // init function
+        entry();
         if (process.env.NODE_ENV === "development") {
             console.log(`Mongodb connected successfully from ${db.host}`);
         }
@@ -27,5 +32,51 @@ const connectDB = async () => {
         // db.on("error", console.error.bind(console, "connection error"));
     }
 };
+
+function entry() {
+    Role.estimatedDocumentCount((err, count) => {
+        if (!err && count == 0) {
+            new Role({
+                name: "user",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "client",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "freelancer",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "admin",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "super-admin",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+        }
+    });
+}
 
 module.exports = connectDB;
