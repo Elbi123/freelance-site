@@ -5,7 +5,8 @@ const Role = require("./../models/role.model");
 
 dotenv.config();
 
-const dbString = process.env.DB_CONNECTION_STRING.replace(
+const dbLocal = process.env.DB_LOCAL;
+const dbRemote = process.env.DB_CONNECTION_STRING.replace(
     "<password>",
     process.env.DB_PASSWORD
 );
@@ -13,7 +14,7 @@ const dbString = process.env.DB_CONNECTION_STRING.replace(
 const db = mongoose.connection;
 const connectDB = async () => {
     try {
-        await mongoose.connect(dbString, {
+        await mongoose.connect(dbRemote, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,

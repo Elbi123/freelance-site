@@ -13,7 +13,6 @@ const jobSchema = new Schema(
         },
         slug: {
             type: String,
-            // required: true,
             unique: true,
         },
         description: {
