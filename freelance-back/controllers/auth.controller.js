@@ -10,7 +10,8 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
             if (!role) {
                 next(
                     new BadRequestError(
-                        `Role ${req.body.roles[i]} doesn't exist`
+                        `Role ${req.body.roles[i]} doesn't exist`,
+                        404
                     )
                 );
             }
@@ -68,7 +69,7 @@ exports.getUsers = catchAsync(async (req, res) => {
 exports.getUser = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) {
-        next(new BadRequestError("User not found"));
+        next(new BadRequestError("User not found", 404));
     }
     res.status(200).json({
         user,

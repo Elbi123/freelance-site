@@ -1,7 +1,9 @@
 const faker = require("faker");
 const Job = require("./../models/job.model");
 const catchAsync = require("./../utils/catchAsync");
-exports.getAllJobs = catchAsync(async (req, res) => {
+const BadRequestError = require("./../utils/error");
+
+exports.getAllJobs = catchAsync(async (req, res, next) => {
     const queryObj = { ...req.query };
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
@@ -33,7 +35,8 @@ exports.getAllJobs = catchAsync(async (req, res) => {
 
     if (req.query.page) {
         const numberOfJobs = await Job.countDocuments();
-        if (skip >= numberOfJobs) throw new Error("Page doesn't exist");
+        if (skip >= numberOfJobs)
+            next(new BadRequestError("Page doesn't exist", 404));
     }
 
     const jobs = await query;
@@ -74,7 +77,7 @@ exports.getJobBySlug = (req, res) => {
 
 exports.createJob = catchAsync(async (req, res) => {
     let { title, description, budget } = req.body;
-    if (!title || !description || !budget) {
+    if (process.env.NODE_ENV === "development") {
         title = faker.name.jobTitle();
         description = faker.lorem.paragraph();
         budget = faker.commerce.price();
