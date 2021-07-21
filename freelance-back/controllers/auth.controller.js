@@ -1,15 +1,17 @@
 const User = require("./../models/user.model");
 const Role = require("./../models/role.model");
 const BadRequestError = require("./../utils/error");
+const catchAsync = require("./../utils/catchAsync");
 
-exports.checkIfRoleExists = async (req, res, next) => {
+exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
     if (req.body.roles) {
         for (let i = 0; i < req.body.roles.length; i++) {
             const role = await Role.findOne({ name: req.body.roles[i] });
             if (!role) {
                 next(
                     new BadRequestError(
-                        `Role ${req.body.roles[i]} doesn't exist`
+                        `Role ${req.body.roles[i]} doesn't exist`,
+                        404
                     )
                 );
             }
@@ -30,9 +32,9 @@ exports.checkIfRoleExists = async (req, res, next) => {
     };
     req.body = user;
     next();
-};
+});
 
-exports.signup = async (req, res) => {
+exports.signup = catchAsync(async (req, res) => {
     let body = { ...req.body };
     delete body.roles;
 
@@ -54,12 +56,22 @@ exports.signup = async (req, res) => {
             user,
         });
     });
-};
+});
 
-exports.getUsers = async (req, res) => {
+exports.getUsers = catchAsync(async (req, res) => {
     await User.find({}, (err, users) => {
         res.json({
             users,
         });
     });
-};
+});
+
+exports.getUser = catchAsync(async (req, res, next) => {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) {
+        next(new BadRequestError("User not found", 404));
+    }
+    res.status(200).json({
+        user,
+    });
+});

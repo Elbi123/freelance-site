@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
         },
         lastName: {
             type: String,
-            required: [true, "First name is required"],
+            required: [true, "Last name is required"],
             validate: {
                 validator: function (el) {
                     return el !== this.firstName;
