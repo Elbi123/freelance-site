@@ -27,6 +27,7 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm,
         phoneNumber: req.body.phoneNumber,
+        userType: req.body.userType,
         img: req.body.img,
         roles: req.body.roles,
     };

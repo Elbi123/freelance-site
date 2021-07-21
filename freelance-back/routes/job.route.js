@@ -5,6 +5,6 @@ const router = express.Router();
 router
     .get("/", jobController.getAllJobs)
     .get("/filtered", jobController.getFilteredJobs)
-    .post("/", jobController.createJob);
+    .post("/:username/jobs", jobController.createJob);
 
 module.exports = router;

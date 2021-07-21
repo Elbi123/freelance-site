@@ -22,9 +22,16 @@ const jobSchema = new Schema(
             min: [32, "Must be at least 32 characters, got {VALUE}"],
             max: [4000, ["Must be at most 4000 characters, got {VALUE}"]],
         },
+        address: {
+            country: {
+                type: String,
+            },
+            city: {
+                type: String,
+            },
+        },
         type: {
             type: String,
-            required: true,
             enum: {
                 values: ["one-time", "contract", "hourly"],
                 message: "{VALUE} is not supported",
@@ -33,17 +40,19 @@ const jobSchema = new Schema(
         },
         status: {
             type: String,
-            required: true,
             enum: {
                 values: ["open", "closed"],
                 message: "{VALUE} is not supported",
             },
             default: "open",
         },
+        // you can take this to its own model
+        skillsNeeded: [String],
         budget: {
             type: Number,
             required: true,
         },
+        customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     },
     { timestamps: true }
 );

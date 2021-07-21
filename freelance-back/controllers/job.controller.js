@@ -1,5 +1,6 @@
 const faker = require("faker");
 const Job = require("./../models/job.model");
+const User = require("./../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
 const BadRequestError = require("./../utils/error");
 
@@ -75,21 +76,52 @@ exports.getJobBySlug = (req, res) => {
     });
 };
 
-exports.createJob = catchAsync(async (req, res) => {
-    let { title, description, budget } = req.body;
+exports.createJob = catchAsync(async (req, res, next) => {
+    let { title, description, address, type, skillsNeeded, budget } = req.body;
+    let { username } = req.params;
+    // console.log(req.params);
+
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        next(new BadRequestError("User not found", 404));
+    } else {
+        if (user.userType === "customer") {
+            // 1- save the data to customer
+            // save the
+        }
+    }
+
     if (process.env.NODE_ENV === "development") {
         title = faker.name.jobTitle();
         description = faker.lorem.paragraph();
+        address.country = faker.address.country();
+        address.city = faker.address.cityName();
         budget = faker.commerce.price();
+    } else if (process.env.NODE_ENV === "production") {
+        if (!title) {
+            next(new BadRequestError("Title is required", 400));
+        } else if (!description) {
+            next(new BadRequestError("Description is required", 400));
+        } else if (!address) {
+            next(new BadRequestError("Address is required"));
+        } else if (!skillsNeeded.length) {
+            next(new BadRequestError("Need skills are required"));
+        } else if (!budget) {
+            next(new BadRequestError("Budget is needed"));
+        }
     }
     const job = new Job({
         title,
         description,
+        address,
+        type,
+        skillsNeeded,
         budget,
     });
-    await job.save();
+    // await job.save();
     res.status(200).json({
-        message: job,
+        // message: job,
+        user,
     });
 });
 

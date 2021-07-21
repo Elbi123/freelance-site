@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema(
         img: {
             type: String,
         },
+        userType: {
+            type: String,
+            enum: {
+                values: ["customer", "freelancer", "user"],
+                message: "{VALUE} is not supported",
+            },
+            default: "user",
+        },
         password: {
             type: String,
             required: [true, "Please provide a password"],
@@ -43,7 +51,6 @@ const userSchema = new mongoose.Schema(
         },
         passwordConfirm: {
             type: String,
-            required: [true, "Confirm your password"],
             validate: {
                 // This only works on CREATE and SAVE
                 validator: function (el) {
@@ -53,9 +60,20 @@ const userSchema = new mongoose.Schema(
             },
         },
         roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
+        customer: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Customer",
+        },
     },
     { timestamps: true }
 );
+
+userSchema.pre("save", function (next) {
+    if (this.userType === "freelancer" || this.userType === "user") {
+        this.customer = undefined;
+    }
+    next();
+});
 
 userSchema.pre("save", async function (next) {
     await this.constructor.findOne({ email: this.email }, function (err, user) {
