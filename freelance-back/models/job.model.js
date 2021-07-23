@@ -36,7 +36,7 @@ const jobSchema = new Schema(
                 values: ["fixed-price", "contract", "hourly"],
                 message: "{VALUE} is not supported",
             },
-            default: "one-time",
+            default: "fixed-price",
         },
         status: {
             type: String,
@@ -51,6 +51,10 @@ const jobSchema = new Schema(
             type: Number,
             required: true,
         },
+        skills: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],
+        experiences: [
+            { type: mongoose.Schema.Types.ObjectId, ref: "Experience" },
+        ],
         customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     },
     { timestamps: true }

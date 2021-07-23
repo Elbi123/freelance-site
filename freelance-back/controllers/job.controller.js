@@ -2,6 +2,8 @@ const faker = require("faker");
 const Job = require("./../models/job.model");
 const User = require("./../models/user.model");
 const Customer = require("./../models/customer.model");
+const Skill = require("../models/skill.model");
+const Experience = require("./../models/experience.model");
 const catchAsync = require("./../utils/catchAsync");
 const BadRequestError = require("./../utils/error");
 
@@ -49,28 +51,6 @@ exports.getAllJobs = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.getFilteredJobs = catchAsync(async (req, res) => {
-    const queryObj = { ...req.query };
-    const excludedFields = ["page", "sort", "limit", "fields"];
-    excludedFields.forEach((el) => delete queryObj[el]);
-    let queryString = JSON.stringify(queryObj);
-
-    // ADVANCED FITERING[SHOULD BE ADDED MORE]
-    queryString = queryString.replace(
-        /\b(gte|gt|lte|lt)\b/g,
-        (match) => `$${match}`
-    );
-
-    let query = Job.find(JSON.parse(queryString));
-
-    const jobs = await query;
-
-    res.status(200).json({
-        total: jobs.length,
-        jobs,
-    });
-});
-
 exports.getJobBySlug = (req, res) => {
     res.status(200).json({
         message: "GET JOB BY SLUG",
@@ -78,7 +58,15 @@ exports.getJobBySlug = (req, res) => {
 };
 
 exports.createJob = catchAsync(async (req, res, next) => {
-    let { title, description, address, type, budget } = req.body;
+    let {
+        title,
+        description,
+        address,
+        type,
+        skillsNeeded,
+        experienceLevel,
+        budget,
+    } = req.body;
     let { userName } = req.params;
 
     // env = 'development'
@@ -97,6 +85,8 @@ exports.createJob = catchAsync(async (req, res, next) => {
             next(new BadRequestError("Description is required", 400));
         } else if (!address) {
             next(new BadRequestError("Address is required"));
+        } else if (!skillsNeeded.length) {
+            next(new BadRequestError("Need skills are required"));
         } else if (!budget) {
             next(new BadRequestError("Budget is needed"));
         }
@@ -112,23 +102,69 @@ exports.createJob = catchAsync(async (req, res, next) => {
             if (!customer) {
                 return next("Customer Not Found", 404);
             }
-            console.log(skillsNeeded);
-            // await Skill.find({})
 
-            // create job here
-            const job = new Job({
+            let constructJob = {
                 title,
                 description,
                 address,
                 type,
                 budget,
-            });
+            };
 
+            // create job here
+            const job = new Job(constructJob);
+
+            let idSkillsNeeded = [];
+            let idExperiences = [];
+            for (let i = 0; i < skillsNeeded.length; i++) {
+                const skill = await Skill.findOne({
+                    name: skillsNeeded[i],
+                });
+
+                // need to be checked
+                if (!skill) {
+                    const newSkill = new Skill({ name: skillsNeeded[i] });
+                    newSkill.jobs.push(job._id);
+                    idSkillsNeeded.push(newSkill._id);
+                    await newSkill.save();
+                } else {
+                    idSkillsNeeded.push(skill._id);
+                    skill.jobs.push(job._id);
+
+                    // save skill here
+                    await skill.save();
+                }
+            }
+            for (let i = 0; i < experienceLevel.length; i++) {
+                const experience = await Experience.findOne({
+                    name: experienceLevel[i],
+                });
+
+                // need to be checked
+                if (!experience) {
+                    const newExperience = new Experience({
+                        name: experienceLevel[i],
+                    });
+                    newExperience.jobs.push(job._id);
+                    idExperiences.push(newExperience._id);
+                    await newExperience.save();
+                } else {
+                    idExperiences.push(experience._id);
+                    experience.jobs.push(job._id);
+
+                    // save skill here
+                    await experience.save();
+                }
+            }
             // maintain 1-M
             customer.jobs.push(job._id);
 
             // maintain 1-1
             job.customer = customer._id;
+
+            // add skills to job
+            job.skills = idSkillsNeeded;
+            job.experiences = idExperiences;
 
             // save job
             await job.save();
@@ -138,8 +174,9 @@ exports.createJob = catchAsync(async (req, res, next) => {
 
             res.status(200).json({
                 // don't forget to replace this with response message
-                status: "success",
-                message: "Job created successfully",
+                // status: "success",
+                // message: "Job created successfully",
+                job,
             });
         }
     }
@@ -152,6 +189,13 @@ exports.getCustomerJob = async (req, res) => {
     );
     res.json({
         customer,
+    });
+};
+
+exports.getSkill = async (req, res) => {
+    const skills = await Skill.find({});
+    res.json({
+        skills,
     });
 };
 

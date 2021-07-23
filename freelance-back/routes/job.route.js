@@ -4,8 +4,8 @@ const router = express.Router();
 
 router
     .get("/", jobController.getAllJobs)
-    .get("/filtered", jobController.getFilteredJobs)
     .get("/:userName/jobs", jobController.getCustomerJob)
+    .get("/skills", jobController.getSkill)
     .post("/:userName/jobs", jobController.createJob);
 
 module.exports = router;
