@@ -33,7 +33,7 @@ const jobSchema = new Schema(
         type: {
             type: String,
             enum: {
-                values: ["one-time", "contract", "hourly"],
+                values: ["fixed-price", "contract", "hourly"],
                 message: "{VALUE} is not supported",
             },
             default: "one-time",
@@ -47,7 +47,6 @@ const jobSchema = new Schema(
             default: "open",
         },
         // you can take this to its own model
-        skillsNeeded: [String],
         budget: {
             type: Number,
             required: true,

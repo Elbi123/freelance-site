@@ -43,6 +43,7 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
             address,
             legalInformation,
         });
+        // checks if the customer exists
         if (user.customer) {
             return next(new BadRequestHandler("Customer already existed", 400));
         }

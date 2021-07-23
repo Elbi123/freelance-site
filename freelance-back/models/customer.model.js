@@ -41,15 +41,6 @@ const customerSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-customerSchema.pre("save", function (next) {
-    this.constructor.findOne({ _id: this._id }, (err, customer) => {
-        if (customer) {
-            next(new Error("Customer already existed"));
-        }
-        next();
-    });
-});
-
 const Customer = mongoose.model("Customer", customerSchema);
 
 module.exports = Customer;

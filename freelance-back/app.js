@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 
 app.use("/auth", authRouter);
 app.use("/jobs", jobRouter);
-// app.use("/customers", jobRouter);
+app.use("/customers", jobRouter);
 app.use("/potential", customerRouter);
 
 // error middleware - unhadled route

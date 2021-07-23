@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
         phoneNumber: {
             type: String,
             required: [true, "Phone is required"],
+            unique: true,
             validate: [validator.isMobilePhone],
         },
         img: {
