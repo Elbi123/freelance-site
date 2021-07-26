@@ -55,6 +55,7 @@ const jobSchema = new Schema(
         experiences: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Experience" },
         ],
+        languages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Language" }],
         customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     },
     { timestamps: true }
