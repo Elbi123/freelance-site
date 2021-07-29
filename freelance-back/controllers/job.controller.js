@@ -1,4 +1,5 @@
 const faker = require("faker");
+const ObjectId = require("mongoose").Types.ObjectId;
 const Job = require("../models/job.model");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
@@ -8,6 +9,7 @@ const Language = require("../models/language.model");
 const catchAsync = require("./../utils/catchAsync");
 const BadRequestError = require("./../utils/error");
 const helpQuery = require("../utils/helpQuery");
+const helpUpdate = require("../utils/helpUpdate");
 
 exports.getAllJobs = catchAsync(async (req, res, next) => {
     const queryObj = { ...req.query };
@@ -53,11 +55,24 @@ exports.getAllJobs = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.getJobBySlug = (req, res) => {
-    res.status(200).json({
-        message: "GET JOB BY SLUG",
-    });
-};
+exports.getJobBySlug = catchAsync(async (req, res, next) => {
+    const slug = req.params.slug;
+    await Job.findOne({ slug })
+        .populate({ path: "skills experiences languages", select: "name -_id" })
+        .select("-__v")
+        // populate: { path: "skills experiences" },
+        .exec(function (err, job) {
+            if (err) {
+                return next(new BadRequestError("Internal Server Error", 500));
+            }
+            if (!job) {
+                return next(new BadRequestError("Job Not Found0", 404));
+            }
+            res.status(200).json({
+                job,
+            });
+        });
+});
 
 exports.createJob = catchAsync(async (req, res, next) => {
     let {
@@ -148,7 +163,6 @@ exports.createJob = catchAsync(async (req, res, next) => {
             await customer.save();
 
             res.status(200).json({
-                // don't forget to replace this with response message
                 status: "success",
                 message: "Job created successfully",
             });
@@ -158,24 +172,89 @@ exports.createJob = catchAsync(async (req, res, next) => {
 
 exports.getCustomerJob = async (req, res) => {
     const user = await User.findOne({ userName: req.params.userName });
+    if (!user) {
+        return next(new BadRequestError("User Not Found"));
+    }
     const customer = await Customer.findOne({ _id: user.customer }).populate(
         "user jobs"
     );
+    if (!customer) {
+        return next(new BadRequestError("Customer Not Found", 404));
+    }
     res.json({
         customer,
     });
 };
 
-exports.getSkill = async (req, res) => {
-    const skills = await Skill.find({});
-    res.json({
-        skills,
+exports.updateJob = catchAsync(async (req, res, next) => {
+    const id = req.params.id;
+    const {
+        title,
+        description,
+        address,
+        type,
+        skillsNeeded,
+        experienceLevel,
+        budget,
+        languages,
+    } = req.body;
+    const job = await Job.findOne({ _id: id });
+    if (!job) {
+        return next(new BadRequestError("Job Not Found", 404));
+    }
+
+    // helpQuery(skillsNeeded, Skill, job);
+    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills");
+    const idExperience = await helpUpdate(
+        experienceLevel,
+        Experience,
+        job,
+        "experiences"
+    );
+    const idLanguage = await helpUpdate(languages, Language, job, "languages");
+
+    // string into ObjectId data-type
+    const mappedToSkills = idSkill.map((el) => {
+        return ObjectId(el);
+    });
+    const mappedToExperiences = idExperience.map((el) => {
+        return ObjectId(el);
+    });
+
+    const mappedToLangauge = idLanguage.map((el) => {
+        return ObjectId(el);
+    });
+
+    // filter;
+    const filter = { _id: id };
+    const update = {
+        title,
+        description,
+        address,
+        type,
+        budget,
+        skills: mappedToSkills,
+        experiences: mappedToExperiences,
+        languages: mappedToLangauge,
+    };
+    const updatedJob = await Job.findOneAndUpdate(filter, update, {
+        new: true,
+    });
+    res.status(200).json({
+        // replace this with message
+        updatedJob,
+    });
+});
+
+exports.getSkills = async (req, res) => {
+    await Skill.find({}).exec((err, skills) => {
+        res.json({ skills });
     });
 };
 
-exports.updateJob = (req, res) => {
-    res.status(200).json({
-        message: "UPDATE JOB MAN",
+exports.getExperiences = async (req, res) => {
+    await Experience.find({}).exec((err, skills) => {
+        res.json({ skills });
     });
 };
 
