@@ -60,11 +60,24 @@ exports.signup = catchAsync(async (req, res) => {
 });
 
 exports.getUsers = catchAsync(async (req, res) => {
-    await User.find({}, (err, users) => {
-        res.json({
-            users,
+    await User.find({})
+        .populate({
+            path: "customer",
+            populate: {
+                path: "jobs",
+                populate: { path: "skills experiences" },
+            },
+        })
+        .exec(function (err, users) {
+            if (err) {
+                return next(new BadRequestError("Unknown error", 500));
+            }
+            if (users) {
+                res.json({
+                    users,
+                });
+            }
         });
-    });
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
