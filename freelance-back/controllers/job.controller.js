@@ -258,8 +258,71 @@ exports.getExperiences = async (req, res) => {
     });
 };
 
-exports.deleteJob = (req, res) => {
-    res.status(200).json({
-        message: "DELETE JOB MAN",
-    });
-};
+exports.deleteJob = catchAsync(async (req, res, next) => {
+    const { username, id } = req.params;
+
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    if (user.userType === "customer") {
+        const customer = await Customer.findOne({ _id: user.customer });
+        if (!customer) {
+            return next(new BadRequestError("Customor Not Found", 404));
+        }
+        const job = await Job.findOne({ _id: id });
+        if (!job) {
+            return next(new BadRequestError("Job Not Found", 404));
+        }
+        // update skill.jobs
+        // console.log("job skills", job.skills);
+        job.skills.forEach(async (id) => {
+            // id - skill id in job
+            await Skill.updateOne(
+                { _id: id },
+                {
+                    $pull: { jobs: job._id },
+                }
+            );
+        });
+        // update experience.jobs
+        job.experiences.forEach(async (id) => {
+            await Experience.updateOne(
+                { _id: id },
+                {
+                    $pull: { jobs: job._id },
+                }
+            );
+        });
+
+        // update language.jobs
+        job.languages.forEach(async (id) => {
+            await Language.updateOne(
+                { _id: id },
+                {
+                    $pull: { jobs: job._id },
+                }
+            );
+        });
+
+        // update the customer.job list by using $pull
+        console.log(customer.jobs);
+        const filteredJobs = customer.jobs.filter((el) => {
+            return !el.equals(id);
+        });
+        await Customer.updateOne(
+            { _id: user.customer },
+            { jobs: filteredJobs }
+        );
+
+        await Job.findByIdAndDelete({ _id: id }, (err) => {
+            if (err) {
+                next(new BadRequestError("Internal Server Error", 500));
+            }
+            res.status(200).json({
+                status: "success",
+                message: "Job Successfully Deleted",
+            });
+        });
+    }
+});

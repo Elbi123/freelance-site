@@ -13,6 +13,6 @@ router
 router
     .get("/:slug", jobController.getJobBySlug)
     .patch("/:id", jobController.updateJob)
-    .delete("/:id", jobController.deleteJob);
+    .delete("/:username/jobs/:id", jobController.deleteJob);
 
 module.exports = router;
