@@ -118,7 +118,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const customer_id = user.customer;
             const customer = await Customer.findOne({ _id: customer_id });
             if (!customer) {
-                return next("Customer Not Found", 404);
+                return next(BadRequestError("Customer Not Found", 404));
             }
 
             let constructJob = {
@@ -306,7 +306,6 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
         });
 
         // update the customer.job list by using $pull
-        console.log(customer.jobs);
         const filteredJobs = customer.jobs.filter((el) => {
             return !el.equals(id);
         });
