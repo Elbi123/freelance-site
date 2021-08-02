@@ -26,6 +26,7 @@ const sendErrorDev = (err, res) => {
 const sendErrorProd = (err, res) => {
     // Operational, trusted errors goes here
     if (err.isOperational) {
+        // console.log(err.isOperational);
         res.status(err.statusCode).json({
             status: err.status,
             message: err.message,
@@ -36,6 +37,7 @@ const sendErrorProd = (err, res) => {
     } else {
         res.status(500).json({
             status: "error",
+            error: err,
             message: "Something went very wrong",
         });
     }
@@ -48,16 +50,18 @@ module.exports = (err, req, res, next) => {
     if (process.env.NODE_ENV === "development") {
         sendErrorDev(err, res);
     } else if (process.env.NODE_ENV === "production") {
+        // the de-structuring may cause a problem
+        // because the error object is mutated. NB- watch very closely
         let error = { ...err };
 
         // handle mongoose cast error
-        if (err.name === "CastError") error = handleCastErrorDB(err);
+        if (err.name === "CastError") err = handleCastErrorDB(err);
 
         // handle validator error
-        if (err.name === "ValidationError") error = handleValidationError(err);
+        if (err.name === "ValidationError") err = handleValidationError(err);
 
         // handle duplicate key error
         // if (err.code === 11000) error = handleDuplicateErrorDB(err);
-        sendErrorProd(error, res);
+        sendErrorProd(err, res);
     }
 };

@@ -2,9 +2,17 @@ const express = require("express");
 const jobController = require("./../controllers/job.controller");
 const router = express.Router();
 
+router.get("/", jobController.getAllJobs);
+router.get("/skills", jobController.getSkills);
+router.get("/experiences", jobController.getExperiences);
+
 router
-    .get("/", jobController.getAllJobs)
-    .get("/filtered", jobController.getFilteredJobs)
-    .post("/", jobController.createJob);
+    .get("/:userName/jobs", jobController.getCustomerJob)
+    .post("/:userName/jobs", jobController.createJob);
+
+router
+    .get("/:slug", jobController.getJobBySlug)
+    .patch("/:id", jobController.updateJob)
+    .delete("/:username/jobs/:id", jobController.deleteJob);
 
 module.exports = router;
