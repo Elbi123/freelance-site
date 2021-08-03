@@ -5,7 +5,7 @@ const catchAsync = require("./../utils/catchAsync");
 const BadRequestHandler = require("./../utils/error");
 
 exports.getCustomers = catchAsync(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({ userType: "customer" });
     res.status(200).json({
         users,
     });
