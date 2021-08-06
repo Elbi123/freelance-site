@@ -65,6 +65,10 @@ const userSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Customer",
         },
+        freelancer: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Freelancer",
+        },
     },
     { timestamps: true }
 );
@@ -72,6 +76,8 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", function (next) {
     if (this.userType === "freelancer" || this.userType === "user") {
         this.customer = undefined;
+    } else if (this.userType === "customer" || this.userType === "user") {
+        this.freelancer = undefined;
     }
     next();
 });

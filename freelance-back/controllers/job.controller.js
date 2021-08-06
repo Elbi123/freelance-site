@@ -133,13 +133,23 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const job = new Job(constructJob);
 
             // helps querying
-            const idSkillsNeeded = await helpQuery(skillsNeeded, Skill, job);
+            const idSkillsNeeded = await helpQuery(
+                skillsNeeded,
+                Skill,
+                job,
+                "job"
+            );
             const idExperiences = await helpQuery(
                 experienceLevel,
                 Experience,
                 job
             );
-            const idLanguages = await helpQuery(languages, Language, job);
+            const idLanguages = await helpQuery(
+                languages,
+                Language,
+                job,
+                "job"
+            );
 
             // maintain 1-M
             customer.jobs.push(job._id);

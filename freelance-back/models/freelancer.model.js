@@ -3,23 +3,32 @@ const mongoose = require("mongoose");
 const freelancerSchema = new mongoose.Schema(
     {
         address: {
-            country: String,
-            city: String,
-            required: [true, "Address required"],
+            country: {
+                type: String,
+                required: [true, "Address required"],
+            },
+            city: {
+                type: String,
+                required: [true, "City required"],
+            },
         },
         summary: {
             type: String,
             required: [true, "Freelancer summary required"],
         },
-        eduBackground: {
+
+        // this can move to its own model [may be]
+        educationalBackground: {
             type: [String],
-            require: [true, "Educational background required"],
+            required: [true, "Educational background required"],
             default: "Self-Taught",
         },
-        img: String,
+        imgUrl: {
+            type: String,
+        },
         legalInformation: {
             type: [String],
-            required: [true],
+            required: [true, "Legal information is required"],
         },
         // you might take to the user model
         isActive: {
@@ -38,6 +47,7 @@ const freelancerSchema = new mongoose.Schema(
         experiences: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Experience" },
         ],
+        languages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Language" }],
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
