@@ -2,8 +2,7 @@ const ObjectId = require("mongoose").Types.ObjectId;
 
 const compuateSkill = (job, type) => {};
 
-module.exports = helpUpdate = async (data, model, job, arr) => {
-    console.log("called");
+module.exports = helpUpdate = async (data, model, job, arr, type) => {
     let idSkill = [];
 
     for (let i = 0; i < data.length; i++) {
@@ -15,8 +14,11 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
             const newSkill = new model({ name: data[i] });
 
             // add job to new skill
-            newSkill.jobs.push(job._id);
-
+            if (type === "job") {
+                newSkill.jobs.push(job._id);
+            } else if (type === "freelancer") {
+                newSkill.freelancers.push(job._id);
+            }
             // add to idSkill array
             idSkill.push(ObjectId(newSkill._id).toString());
 
@@ -24,12 +26,22 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
             await newSkill.save();
         } else {
             // add job to skill
-            const objectToString = query.jobs.map((el) => {
-                return ObjectId(el);
-            });
+            if (type === "job") {
+                const objectToString = query.jobs.map((el) => {
+                    return ObjectId(el);
+                });
 
-            if (!objectToString.includes(ObjectId(job._id))) {
-                query.jobs.push(job._id);
+                if (!objectToString.includes(ObjectId(job._id))) {
+                    query.jobs.push(job._id);
+                }
+            } else if (type === "freelancer") {
+                const objectToString = query.freelancers.map((el) => {
+                    return ObjectId(el);
+                });
+
+                if (!objectToString.includes(ObjectId(job._id))) {
+                    query.freelancers.push(job._id);
+                }
             }
 
             // add if idSkill has no duplicate ids
@@ -39,8 +51,6 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
             await query.save();
         }
     }
-
-    console.log(idSkill);
 
     // loop the job skill for re-mapping the skill and job
     if (arr === "skills") {
@@ -56,12 +66,21 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
                 if (!uSkill) {
                     console.log("Doesn't work");
                 }
-                const newSkillIds = uSkill.jobs.filter((el) => {
-                    return !el.equals(job._id);
-                });
+                if (type === "job") {
+                    const newSkillIds = uSkill.jobs.filter((el) => {
+                        return !el.equals(job._id);
+                    });
 
-                // change the skill's job with the new job
-                uSkill.jobs = newSkillIds;
+                    // change the skill's job with the new job
+                    uSkill.jobs = newSkillIds;
+                } else if (type === "freelancer") {
+                    const newSkillIds = uSkill.freelancers.filter((el) => {
+                        return !el.equals(job._id);
+                    });
+
+                    // change the skill's job with the new job
+                    uSkill.freelancers = newSkillIds;
+                }
 
                 // save the skill
                 await uSkill.save();
@@ -80,12 +99,21 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
                 if (!uSkill) {
                     console.log("Doesn't work");
                 }
-                const newSkillIds = uSkill.jobs.filter((el) => {
-                    return !el.equals(job._id);
-                });
+                if (type === "job") {
+                    const newSkillIds = uSkill.jobs.filter((el) => {
+                        return !el.equals(job._id);
+                    });
 
-                // change the skill's job with the new job
-                uSkill.jobs = newSkillIds;
+                    // change the skill's job with the new job
+                    uSkill.jobs = newSkillIds;
+                } else if (type === "freelancer") {
+                    const newSkillIds = uSkill.freelancers.filter((el) => {
+                        return !el.equals(job._id);
+                    });
+
+                    // change the skill's job with the new job
+                    uSkill.freelancers = newSkillIds;
+                }
 
                 // save the skill
                 await uSkill.save();
@@ -104,12 +132,21 @@ module.exports = helpUpdate = async (data, model, job, arr) => {
                 if (!uSkill) {
                     console.log("Doesn't work");
                 }
-                const newSkillIds = uSkill.jobs.filter((el) => {
-                    return !el.equals(job._id);
-                });
+                if (type === "job") {
+                    const newSkillIds = uSkill.jobs.filter((el) => {
+                        return !el.equals(job._id);
+                    });
 
-                // change the skill's job with the new job
-                uSkill.jobs = newSkillIds;
+                    // change the skill's job with the new job
+                    uSkill.jobs = newSkillIds;
+                } else if (type === "freelancer") {
+                    const newSkillIds = uSkill.freelancers.filter((el) => {
+                        return !el.equals(job._id);
+                    });
+
+                    // change the skill's job with the new job
+                    uSkill.freelancers = newSkillIds;
+                }
 
                 // save the skill
                 await uSkill.save();
