@@ -87,29 +87,6 @@ exports.createJob = catchAsync(async (req, res, next) => {
     } = req.body;
     let { userName } = req.params;
 
-    // env = 'development'
-    if (process.env.NODE_ENV === "development") {
-        title = faker.name.jobTitle();
-        description = faker.lorem.paragraph();
-        address.country = faker.address.country();
-        address.city = faker.address.cityName();
-        budget = faker.commerce.price();
-
-        // env = 'production'
-    } else if (process.env.NODE_ENV === "production") {
-        if (!title) {
-            next(new BadRequestError("Title is required", 400));
-        } else if (!description) {
-            next(new BadRequestError("Description is required", 400));
-        } else if (!address) {
-            next(new BadRequestError("Address is required"));
-        } else if (!skillsNeeded.length) {
-            next(new BadRequestError("Needed skills are required"));
-        } else if (!budget) {
-            next(new BadRequestError("Budget is needed"));
-        }
-    }
-
     const user = await User.findOne({ userName: userName });
     if (!user) {
         return next(new BadRequestError("User Not Found", 404));

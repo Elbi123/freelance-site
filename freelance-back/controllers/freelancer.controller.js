@@ -35,33 +35,6 @@ exports.createFreelancer = catchAsync(async (req, res, next) => {
         experiences,
         languages,
     } = req.body;
-    if (process.env.NODE_ENV === "development") {
-        if (!address.country || !address.city || !summary) {
-            address.country = faker.address.country();
-            address.city = faker.address.cityName();
-            summary = faker.lorem.paragraph();
-        }
-    } else if (process.env.NODE_ENV === "production") {
-        if (!address.country || !address.city) {
-            return next(new BadRequestHandler("Address required", 400));
-        } else if (!summary) {
-            return next(
-                new BadRequestHandler("Employer summary required", 400)
-            );
-        } else if (!educationalBackground.length) {
-            return next(
-                new BadRequestHandler("Educational background required", 400)
-            );
-        } else if (!availableTime) {
-            return next(new BadRequestHandler("Available time required", 400));
-        } else if (!skills.length) {
-            return next(new BadRequestHandler("Skill required", 400));
-        } else if (!experiences.length) {
-            return next(new BadRequestHandler("Experience required", 400));
-        } else if (!languages.length) {
-            return next(new BadRequestHandler("Language required"));
-        }
-    }
 
     const user = await User.findOne({ userName: username });
 
