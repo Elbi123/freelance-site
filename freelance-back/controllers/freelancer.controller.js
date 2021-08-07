@@ -1,4 +1,5 @@
 const faker = require("faker");
+const ObjectId = require("mongoose").Types.ObjectId;
 const User = require("../models/user.model");
 const Freelancer = require("../models/freelancer.model");
 const Skill = require("../models/skill.model");
@@ -6,6 +7,7 @@ const Experience = require("../models/experience.model");
 const Language = require("../models/language.model");
 const catchAsync = require("../utils/catchAsync");
 const helpQuery = require("../utils/helpQuery");
+const helpUpdate = require("../utils/helpUpdate");
 const BadRequestHandler = require("../utils/error");
 
 exports.getAllFreelancer = catchAsync(async (req, res) => {
@@ -108,10 +110,103 @@ exports.createFreelancer = catchAsync(async (req, res, next) => {
     }
 });
 
-exports.updateFreelancerDetail = (req, res) => {
+exports.updateFreelancerDetail = catchAsync(async (req, res, next) => {
+    // accept the updating data and params
+    let {
+        address,
+        summary,
+        educationalBackground,
+        legalInformation,
+        availableTime,
+        skills,
+        experiences,
+        languages,
+    } = { ...req.body };
+    const { username, id } = req.params;
+
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestHandler("User Not Found", 404));
+    }
+    if (!user.freelancer) {
+        return next(new BadRequestHandler("User Profile Not Found", 404));
+    }
+    const profile = await Freelancer.findOne({ _id: user.freelancer });
+    if (!profile) {
+        return next(new BadRequestHandler("User Profile Not Found", 404));
+    }
+
+    const idSkills = await helpUpdate(
+        skills,
+        Skill,
+        profile,
+        "skills",
+        "freelancer"
+    );
+
+    const idExperiences = await helpUpdate(
+        experiences,
+        Experience,
+        profile,
+        "experiences",
+        "freelancer"
+    );
+
+    const idLanguages = await helpUpdate(
+        languages,
+        Language,
+        profile,
+        "languages",
+        "freelancer"
+    );
+
+    const mappedToSkills = idSkills.map((el) => {
+        return ObjectId(el);
+    });
+
+    const mappedToExperiences = idExperiences.map((el) => {
+        return ObjectId(el);
+    });
+
+    const mappedToLangauges = idLanguages.map((el) => {
+        return ObjectId(el);
+    });
+
+    const filter = { _id: user.freelancer };
+    const updated = {
+        address,
+        summary,
+        educationalBackground,
+        legalInformation,
+        availableTime,
+        skills: mappedToSkills,
+        experiences: mappedToExperiences,
+        languages: mappedToLangauges,
+    };
+
+    const updatedProfile = await Freelancer.findOneAndUpdate(filter, updated, {
+        new: true,
+    });
+
+    // console.log(idSkill);
+
+    // work on validation
+
+    // work on query
+    // 1- search for the user
+    // 2- search for the user profile
+
+    // work on updating the values
     res.status(200).json({
         status: "sucess",
-        message: "UPDATE FREELANCER DETAIL",
+        updatedProfile,
+    });
+});
+
+exports.updatedImage = (req, res, next) => {
+    res.status(200).json({
+        status: "success",
+        message: "IMAGE UPDATE IS WORKING",
     });
 };
 

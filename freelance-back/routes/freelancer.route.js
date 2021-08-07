@@ -10,4 +10,9 @@ router.post(
     freelancerController.createFreelancer
 );
 
+router.patch(
+    "/:username/freelancer-detail/",
+    freelancerController.updateFreelancerDetail
+);
+
 module.exports = router;
