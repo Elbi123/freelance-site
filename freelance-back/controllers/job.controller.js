@@ -191,14 +191,21 @@ exports.updateJob = catchAsync(async (req, res, next) => {
     }
 
     // helpQuery(skillsNeeded, Skill, job);
-    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills");
+    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills", "job");
     const idExperience = await helpUpdate(
         experienceLevel,
         Experience,
         job,
-        "experiences"
+        "experiences",
+        "job"
     );
-    const idLanguage = await helpUpdate(languages, Language, job, "languages");
+    const idLanguage = await helpUpdate(
+        languages,
+        Language,
+        job,
+        "languages",
+        "job"
+    );
 
     // string into ObjectId data-type
     const mappedToSkills = idSkill.map((el) => {
