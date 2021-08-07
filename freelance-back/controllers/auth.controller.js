@@ -62,9 +62,9 @@ exports.signup = catchAsync(async (req, res) => {
 exports.getUsers = catchAsync(async (req, res) => {
     await User.find({})
         .populate({
-            path: "customer",
+            path: "customer freelancer",
             populate: {
-                path: "jobs",
+                path: "jobs skills experiences languages",
                 populate: { path: "skills experiences" },
             },
         })
