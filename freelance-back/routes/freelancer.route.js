@@ -14,5 +14,9 @@ router.patch(
     "/:username/freelancer-detail/",
     freelancerController.updateFreelancerDetail
 );
+router.delete(
+    "/:username/freelancer-detail",
+    freelancerController.deleteFreelancerDetail
+);
 
 module.exports = router;

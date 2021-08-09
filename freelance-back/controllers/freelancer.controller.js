@@ -58,9 +58,7 @@ exports.createFreelancer = catchAsync(async (req, res, next) => {
 
         // check if the user has freelancer detail
         if (user.freelancer) {
-            return next(
-                new BadRequestHandler("Freelancer Already Existed", 400)
-            );
+            return next(new BadRequestHandler("Profile Already Existed", 400));
         }
 
         // maintain 1 - 1 Relationship
@@ -129,12 +127,9 @@ exports.updateFreelancerDetail = catchAsync(async (req, res, next) => {
         return next(new BadRequestHandler("User Not Found", 404));
     }
     if (!user.freelancer) {
-        return next(new BadRequestHandler("User Profile Not Found", 404));
+        return next(new BadRequestHandler("No Profile Found", 404));
     }
     const profile = await Freelancer.findOne({ _id: user.freelancer });
-    if (!profile) {
-        return next(new BadRequestHandler("User Profile Not Found", 404));
-    }
 
     const idSkills = await helpUpdate(
         skills,
@@ -184,19 +179,11 @@ exports.updateFreelancerDetail = catchAsync(async (req, res, next) => {
         languages: mappedToLangauges,
     };
 
+    // work on updating the values
     const updatedProfile = await Freelancer.findOneAndUpdate(filter, updated, {
         new: true,
     });
 
-    // console.log(idSkill);
-
-    // work on validation
-
-    // work on query
-    // 1- search for the user
-    // 2- search for the user profile
-
-    // work on updating the values
     res.status(200).json({
         status: "sucess",
         updatedProfile,
@@ -210,9 +197,65 @@ exports.updatedImage = (req, res, next) => {
     });
 };
 
-exports.deleteFreelancerDetail = (req, res) => {
-    res.status(200).json({
-        status: "sucess",
-        message: "DELETE FREELANCER DETAIL",
-    });
-};
+exports.deleteFreelancerDetail = catchAsync(async (req, res, next) => {
+    const { username } = req.params;
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestHandler("User Not Found", 404));
+    }
+    if (!user.freelancer) {
+        return next(new BadRequestHandler("No Profile Found", 404));
+    }
+
+    if (user.userType === "freelancer") {
+        // update the skills, experiences, languages to remove the respective user profile
+        const profile = await Freelancer.findOne({ _id: user.freelancer });
+
+        // update skills
+        profile.skills.forEach(async (skill) => {
+            await Skill.updateOne(
+                { _id: skill._id },
+                {
+                    $pull: { freelancers: profile._id },
+                }
+            );
+        });
+
+        // update experiences
+        profile.experiences.forEach(async (experience) => {
+            await Experience.updateOne(
+                { _id: experience._id },
+                {
+                    $pull: { freelancers: profile._id },
+                }
+            );
+        });
+
+        // update languages
+        profile.languages.forEach(async (language) => {
+            await Language.updateOne(
+                { _id: language._id },
+                {
+                    $pull: { freelancers: profile._id },
+                }
+            );
+        });
+
+        // update for user.userType === 'freelancer', the freelancer
+        await User.updateOne({ _id: user._id }, { $unset: { freelancer: "" } });
+
+        // remove the profile
+        await profile.remove((err) => {
+            if (err) {
+                return next(
+                    new BadRequestHandler("Internal Server Error"),
+                    500
+                );
+            }
+            res.status(200).json({
+                status: "success",
+                message: "Profile Deleted Successfully",
+            });
+        });
+    }
+});
