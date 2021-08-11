@@ -66,7 +66,6 @@ exports.checkEmptyJobValidation = (req, res, next) => {
         budget,
         languages,
     } = req.body;
-    let { userName } = req.params;
 
     // env = 'development'
     if (process.env.NODE_ENV === "development") {
