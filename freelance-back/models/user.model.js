@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema(
                 message: "First Name has to be different from Last Name",
             },
         },
+        companyName: {
+            type: String,
+            required: [true, "Company name is required"],
+        },
+        companyPhone: {
+            type: String,
+            required: [true, "Phone Number required"],
+        },
         email: {
             type: String,
             required: [true, "Email is required"],
@@ -40,7 +48,7 @@ const userSchema = new mongoose.Schema(
         userType: {
             type: String,
             enum: {
-                values: ["customer", "freelancer", "user"],
+                values: ["customer", "company", "freelancer", "user"],
                 message: "{VALUE} is not supported",
             },
             default: "user",
@@ -76,9 +84,19 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", function (next) {
     if (this.userType === "freelancer" || this.userType === "user") {
         this.customer = undefined;
+        this.companyName = undefined;
+        this.companyPhone = undefined;
     } else if (this.userType === "customer" || this.userType === "user") {
         this.freelancer = undefined;
+        this.companyName = undefined;
+        this.companyPhone = undefined;
+    } else if (this.userType === "company" || this.userType === "user") {
+        this.freelancer = undefined;
+        this.firstName = undefined;
+        this.lastName = undefined;
+        this.phoneNumber = undefined;
     }
+
     next();
 });
 
