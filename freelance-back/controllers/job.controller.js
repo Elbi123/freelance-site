@@ -23,12 +23,17 @@ exports.getAllJobs = catchAsync(async (req, res, next) => {
         (match) => `$${match}`
     );
 
-    let query = Job.find(JSON.parse(queryString));
+    let query = Job.find(JSON.parse(queryString))
+        .populate(
+            "customer",
+            "-skills -isPaymentVerified -experiences -languages -jobs -legalInformation -user -createAt -_id -__v -updatedAt "
+        )
+        .populate({ path: "skills experiences languages", select: "name -_id" })
+        .select("-_id -__v -updatedAt");
 
     // SORTING GOES HERE
     if (req.query.sort) {
         let sortBy = req.query.sort.split(",").join(" ");
-        console.log(sortBy);
         query = query.sort(sortBy);
     } else {
         query = query.sort("-createdAt");
@@ -86,6 +91,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
         languages,
     } = req.body;
     let { userName } = req.params;
+    console.log(userName);
 
     const user = await User.findOne({ userName: userName });
     if (!user) {
@@ -95,7 +101,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const customer_id = user.customer;
             const customer = await Customer.findOne({ _id: customer_id });
             if (!customer) {
-                return next(BadRequestError("Customer Not Found", 404));
+                return next(new BadRequestError("Customer Not Found", 404));
             }
 
             let constructJob = {
@@ -119,7 +125,8 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const idExperiences = await helpQuery(
                 experienceLevel,
                 Experience,
-                job
+                job,
+                "job"
             );
             const idLanguages = await helpQuery(
                 languages,
