@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const BadRequestError = require("../utils/error");
 
 const userSchema = new mongoose.Schema(
     {
@@ -103,7 +104,7 @@ userSchema.pre("save", function (next) {
 userSchema.pre("save", async function (next) {
     await this.constructor.findOne({ email: this.email }, function (err, user) {
         if (user) {
-            next(new Error("Email has already been taken"));
+            next(new BadRequestError("Email has already been taken"));
         }
     });
     next();
@@ -125,7 +126,9 @@ userSchema.pre("save", async function (next) {
             { userName: this.userName },
             function (err, user) {
                 if (user) {
-                    next(new Error("Username has already been taken"));
+                    next(
+                        new BadRequestError("Username has already been taken")
+                    );
                 }
             }
         );

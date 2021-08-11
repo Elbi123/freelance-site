@@ -91,7 +91,6 @@ exports.createJob = catchAsync(async (req, res, next) => {
         languages,
     } = req.body;
     let { userName } = req.params;
-    console.log(userName);
 
     const user = await User.findOne({ userName: userName });
     if (!user) {
@@ -276,7 +275,6 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
             return next(new BadRequestError("Job Not Found", 404));
         }
         // update skill.jobs
-        // console.log("job skills", job.skills);
         job.skills.forEach(async (id) => {
             // id - skill id in job
             await Skill.updateOne(
