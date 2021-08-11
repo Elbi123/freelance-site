@@ -90,7 +90,7 @@ exports.checkEmptyJobValidation = (req, res, next) => {
         }
     }
 
-    jobDetail = {
+    const jobDetail = {
         title,
         description,
         address,
@@ -102,5 +102,33 @@ exports.checkEmptyJobValidation = (req, res, next) => {
     };
 
     req.body = jobDetail;
+    next();
+};
+
+exports.checkCustomerDetail = (req, res, next) => {
+    // for 'development' vs 'production' env
+    const { customerType, address, legalInformation } = req.body;
+    if (process.env.NODE_ENV === "development") {
+        if (!address.country || !address.city) {
+            address.country = faker.address.country();
+            address.city = faker.address.cityName();
+        }
+    } else if (process.env.NODE_ENV === "production") {
+        if (!address.country || !address.city) {
+            return next(
+                new BadRequestError("Fill your address correctly", 400)
+            );
+        } else if (!legalInformation.length) {
+            return next(
+                new BadRequestError("Fill you legal information details", 400)
+            );
+        }
+    }
+    const customerDetail = {
+        customerType,
+        address,
+        legalInformation,
+    };
+    req.body = customerDetail;
     next();
 };

@@ -91,7 +91,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
             if (users) {
                 res.json({
                     total: users.length,
-                    users,
+                    message: users,
                 });
             }
         });

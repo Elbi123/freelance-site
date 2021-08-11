@@ -103,7 +103,7 @@ exports.createFreelancer = catchAsync(async (req, res, next) => {
 
         res.status(200).json({
             status: "sucess",
-            freelancer,
+            message: "Profile Created Successfully",
         });
     }
 });
@@ -186,7 +186,7 @@ exports.updateFreelancerDetail = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
         status: "sucess",
-        updatedProfile,
+        message: "Profile Updated Successfully",
     });
 });
 
