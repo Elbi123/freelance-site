@@ -81,13 +81,16 @@ class _LargeChildState extends State<LargeChild> {
                             width: 130,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: lightGreen,
+                              border:
+                                  Border.all(color: kSecondaryColor, width: 2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Center(
                               child: Text(
                                 "Find Talent",
-                                style: whitenavButtonTextStyle,
+                                style: whitenavButtonTextStyle.copyWith(
+                                    color: kSecondaryColor,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           )),
@@ -105,8 +108,9 @@ class _LargeChildState extends State<LargeChild> {
                             width: buttonSize,
                             height: 40,
                             decoration: BoxDecoration(
-                              border: Border.all(color: lightGreen, width: 1),
-                              color: white,
+                              border:
+                                  Border.all(color: kPrimaryColor, width: 1),
+                              color: kSecondaryColor,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Center(
