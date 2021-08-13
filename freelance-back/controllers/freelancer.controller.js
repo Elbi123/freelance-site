@@ -180,7 +180,7 @@ exports.updateFreelancerDetail = catchAsync(async (req, res, next) => {
     };
 
     // work on updating the values
-    const updatedProfile = await Freelancer.findOneAndUpdate(filter, updated, {
+    await Freelancer.findOneAndUpdate(filter, updated, {
         new: true,
     });
 
