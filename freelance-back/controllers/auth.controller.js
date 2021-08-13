@@ -17,7 +17,7 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
             }
         }
     } else {
-        req.body.roles = ["user"];
+        req.body.roles = ["user", req.body.userType];
     }
     let user = {
         firstName: req.body.firstName,
@@ -46,7 +46,7 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
     next();
 });
 
-exports.signup = catchAsync(async (req, res) => {
+exports.signup = catchAsync(async (req, res, next) => {
     let body = { ...req.body };
     delete body.roles;
 
@@ -56,9 +56,7 @@ exports.signup = catchAsync(async (req, res) => {
 
     await Role.find({ name: { $in: userRoles } }, async (err, roles) => {
         if (err) {
-            res.json({
-                res,
-            });
+            return next(new BadRequestError("Internal Server Error", 500));
         }
         newUser.roles = roles.map((role) => role._id);
     });
@@ -98,7 +96,17 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
-    const user = await User.findOne({ _id: req.params.id });
+    const user = await User.findOne({ userName: req.params.username })
+        .populate("user")
+        .populate({
+            path: "customer freelancer user",
+            select: "-user -_id -__v",
+            populate: {
+                path: "skills experiences langauge jobs languages",
+                select: "name -_id",
+            },
+        })
+        .select("-_id -__v -password");
     if (!user) {
         next(new BadRequestError("User not found", 404));
     }
