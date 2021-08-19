@@ -43,9 +43,6 @@ const userSchema = new mongoose.Schema(
             unique: true,
             validate: [validator.isMobilePhone],
         },
-        img: {
-            type: String,
-        },
         userType: {
             type: String,
             enum: {
