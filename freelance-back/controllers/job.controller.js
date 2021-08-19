@@ -23,12 +23,17 @@ exports.getAllJobs = catchAsync(async (req, res, next) => {
         (match) => `$${match}`
     );
 
-    let query = Job.find(JSON.parse(queryString));
+    let query = Job.find(JSON.parse(queryString))
+        .populate(
+            "customer",
+            "-skills -isPaymentVerified -experiences -languages -jobs -legalInformation -user -createAt -_id -__v -updatedAt "
+        )
+        .populate({ path: "skills experiences languages", select: "name -_id" })
+        .select("-_id -__v -updatedAt");
 
     // SORTING GOES HERE
     if (req.query.sort) {
         let sortBy = req.query.sort.split(",").join(" ");
-        console.log(sortBy);
         query = query.sort(sortBy);
     } else {
         query = query.sort("-createdAt");
@@ -87,29 +92,6 @@ exports.createJob = catchAsync(async (req, res, next) => {
     } = req.body;
     let { userName } = req.params;
 
-    // env = 'development'
-    if (process.env.NODE_ENV === "development") {
-        title = faker.name.jobTitle();
-        description = faker.lorem.paragraph();
-        address.country = faker.address.country();
-        address.city = faker.address.cityName();
-        budget = faker.commerce.price();
-
-        // env = 'production'
-    } else if (process.env.NODE_ENV === "production") {
-        if (!title) {
-            next(new BadRequestError("Title is required", 400));
-        } else if (!description) {
-            next(new BadRequestError("Description is required", 400));
-        } else if (!address) {
-            next(new BadRequestError("Address is required"));
-        } else if (!skillsNeeded.length) {
-            next(new BadRequestError("Needed skills are required"));
-        } else if (!budget) {
-            next(new BadRequestError("Budget is needed"));
-        }
-    }
-
     const user = await User.findOne({ userName: userName });
     if (!user) {
         return next(new BadRequestError("User Not Found", 404));
@@ -118,7 +100,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const customer_id = user.customer;
             const customer = await Customer.findOne({ _id: customer_id });
             if (!customer) {
-                return next(BadRequestError("Customer Not Found", 404));
+                return next(new BadRequestError("Customer Not Found", 404));
             }
 
             let constructJob = {
@@ -133,13 +115,24 @@ exports.createJob = catchAsync(async (req, res, next) => {
             const job = new Job(constructJob);
 
             // helps querying
-            const idSkillsNeeded = await helpQuery(skillsNeeded, Skill, job);
+            const idSkillsNeeded = await helpQuery(
+                skillsNeeded,
+                Skill,
+                job,
+                "job"
+            );
             const idExperiences = await helpQuery(
                 experienceLevel,
                 Experience,
-                job
+                job,
+                "job"
             );
-            const idLanguages = await helpQuery(languages, Language, job);
+            const idLanguages = await helpQuery(
+                languages,
+                Language,
+                job,
+                "job"
+            );
 
             // maintain 1-M
             customer.jobs.push(job._id);
@@ -204,14 +197,21 @@ exports.updateJob = catchAsync(async (req, res, next) => {
     }
 
     // helpQuery(skillsNeeded, Skill, job);
-    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills");
+    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills", "job");
     const idExperience = await helpUpdate(
         experienceLevel,
         Experience,
         job,
-        "experiences"
+        "experiences",
+        "job"
     );
-    const idLanguage = await helpUpdate(languages, Language, job, "languages");
+    const idLanguage = await helpUpdate(
+        languages,
+        Language,
+        job,
+        "languages",
+        "job"
+    );
 
     // string into ObjectId data-type
     const mappedToSkills = idSkill.map((el) => {
@@ -275,7 +275,6 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
             return next(new BadRequestError("Job Not Found", 404));
         }
         // update skill.jobs
-        // console.log("job skills", job.skills);
         job.skills.forEach(async (id) => {
             // id - skill id in job
             await Skill.updateOne(

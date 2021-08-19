@@ -5,7 +5,7 @@ const catchAsync = require("./../utils/catchAsync");
 const BadRequestHandler = require("./../utils/error");
 
 exports.getCustomers = catchAsync(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({ userType: "customer" });
     res.status(200).json({
         users,
     });
@@ -15,29 +15,12 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
     const { customerType, address, legalInformation } = req.body;
     const { userName } = req.params;
 
-    // for 'development' vs 'production' envs
-    if (process.env.NODE_ENV === "development") {
-        if (!address.country || !address.city) {
-            address.country = faker.address.country();
-            address.city = faker.address.cityName();
-        }
-    } else if (process.env.NODE_ENV === "production") {
-        if (!address.country || !address.city) {
-            return next(
-                new BadRequestHandler("Fill your address correctly", 400)
-            );
-        } else if (!legalInformation.length) {
-            return next(
-                new BadRequestHandler("Fill you legal information details", 400)
-            );
-        }
-    }
     const user = await User.findOne({ userName });
     if (!user) {
         return next(new BadRequestHandler("User Not Found", 404));
     }
 
-    if (user.userType === "customer") {
+    if (user.userType === "customer" || user.userType === "company") {
         const customer = new Customer({
             customerType,
             address,
@@ -61,13 +44,12 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
         await customer.save();
 
         res.status(200).json({
-            customer,
-            user,
+            message: "Profile Created Successufully",
         });
     } else {
         next(
             new BadRequestHandler(
-                "Couldn't save, check if you're customer",
+                "Couldn't save, check if you're customer or company",
                 400
             )
         );

@@ -1,5 +1,6 @@
 const express = require("express");
 const jobController = require("./../controllers/job.controller");
+const inputValidation = require("../middleware/inputValidation.middleware");
 const router = express.Router();
 
 router.get("/", jobController.getAllJobs);
@@ -8,7 +9,11 @@ router.get("/experiences", jobController.getExperiences);
 
 router
     .get("/:userName/jobs", jobController.getCustomerJob)
-    .post("/:userName/jobs", jobController.createJob);
+    .post(
+        "/:userName/jobs",
+        [inputValidation.checkEmptyJobValidation],
+        jobController.createJob
+    );
 
 router
     .get("/:slug", jobController.getJobBySlug)

@@ -5,7 +5,7 @@ const customerSchema = new mongoose.Schema(
         customerType: {
             type: String,
             enum: {
-                values: ["company", "individual"],
+                values: ["customer", "individual"],
                 message: "{VALUE} is not supported",
             },
             default: "individual",
