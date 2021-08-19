@@ -47,7 +47,15 @@ function entry() {
             });
 
             new Role({
-                name: "client",
+                name: "customer",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "company",
             }).save((err) => {
                 if (err) {
                     throw new Error(err);
