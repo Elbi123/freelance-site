@@ -23,9 +23,9 @@ const freelancerSchema = new mongoose.Schema(
             required: [true, "Educational background required"],
             default: "Self-Taught",
         },
-        imgUrl: {
-            type: String,
-        },
+        // imgUrl: {
+        //     type: String,
+        // },
         legalInformation: {
             type: [String],
             required: [true, "Legal information is required"],
@@ -48,10 +48,8 @@ const freelancerSchema = new mongoose.Schema(
             { type: mongoose.Schema.Types.ObjectId, ref: "Experience" },
         ],
         languages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Language" }],
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
+        image: { type: mongoose.Schema.Types.ObjectId, ref: "Image" },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
     { timestamps: true }
 );
