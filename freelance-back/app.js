@@ -14,8 +14,9 @@ if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"));
 }
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use("/public", express.static(`${__dirname}/public`));
 
 app.use("/", freelancerRouter);
 app.use("/auth", authRouter);
