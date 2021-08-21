@@ -1,6 +1,9 @@
 {
   "name": "freelance-back",
   "version": "1.0.0",
+  "engines": {
+    "node": "10.x"
+  },
   "description": "The back end implemetation for the freelance site",
   "main": "server.js",
   "scripts": {
