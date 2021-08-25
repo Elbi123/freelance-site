@@ -3,6 +3,7 @@ const Job = require("../models/job.model");
 const Proposal = require("../models/proposal.model");
 const Freelancer = require("../models/freelancer.model");
 const catchAsync = require("../utils/catchAsync");
+const sendEmail = require("../utils/handleSendingEmail");
 const generateRandomId = require("../utils/generateRandomId");
 const BadRequestError = require("../utils/error");
 
@@ -39,7 +40,7 @@ exports.createProposal = catchAsync(async (req, res, next) => {
 
         if (!freelancer) {
             return next(
-                new BadRequestError("Please Create Profile First", 403)
+                new BadRequestError("Please Create Profile First", 400)
             );
         }
 
@@ -71,11 +72,21 @@ exports.createProposal = catchAsync(async (req, res, next) => {
                 { $push: { proposals: proposal._id } }
             );
 
-            await proposal.save();
+            await proposal.save((err, proposal) => {
+                const details = {
+                    email: user.email,
+                    jobTitle: job.title,
+                    proposalId: proposal.proposalId,
+                };
 
-            res.status(200).json({
-                status: "success",
-                message: "Proposal Submitted Successfully",
+                // send emails
+                sendEmail(details);
+
+                res.status(200).json({
+                    status: "success",
+                    message:
+                        "Proposal Submitted Successfully. Check your email",
+                });
             });
         } else {
             const jobProposals = await Proposal.find({
@@ -120,24 +131,34 @@ exports.createProposal = catchAsync(async (req, res, next) => {
                 );
 
                 // save
-                await proposal.save();
+                await proposal.save((err, proposal) => {
+                    const details = {
+                        email: user.email,
+                        jobTitle: job.title,
+                        proposalId: proposal.proposalId,
+                    };
 
-                return res.status(200).json({
-                    status: "success",
-                    message: "Proposal Submitted Successfully",
+                    // send emails
+                    sendEmail(details);
+
+                    res.status(200).json({
+                        status: "success",
+                        message:
+                            "Proposal Submitted Successfully. Check your email",
+                    });
                 });
             } else {
                 return next(
                     new BadRequestError(
                         "You have already submitted proposal for this job",
-                        403
+                        400
                     )
                 );
             }
         }
     } else {
         return next(
-            new BadRequestError("You should be registered as freelancer", 403)
+            new BadRequestError("You should be registered as freelancer", 400)
         );
     }
 });
