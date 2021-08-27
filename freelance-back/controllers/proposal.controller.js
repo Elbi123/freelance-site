@@ -1,3 +1,4 @@
+const multer = require("multer");
 const User = require("../models/user.model");
 const Job = require("../models/job.model");
 const Proposal = require("../models/proposal.model");
@@ -6,6 +7,33 @@ const catchAsync = require("../utils/catchAsync");
 const sendEmail = require("../utils/handleSendingEmail");
 const generateRandomId = require("../utils/generateRandomId");
 const BadRequestError = require("../utils/error");
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "public/resume");
+    },
+    filename: (req, file, cb) => {
+        const fileExt = file.mimetype.split("/")[1];
+
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}.${fileExt}`);
+    },
+});
+
+const multerFilter = (req, file, cb) => {
+    const imageFormats = /pdf|docx|png/;
+    const fileExt = file.mimetype.split("/")[1];
+    const checkValidImageFormat = imageFormats.test(fileExt);
+
+    if (checkValidImageFormat === true) {
+        cb(null, true);
+    } else {
+        cb(new BadRequestError("Invalid image input", 401));
+    }
+};
+const upload = multer({ storage: storage, fileFilter: multerFilter }).single(
+    "resume"
+);
 
 exports.getAllProposals = async (req, res) => {
     const proposal = await Proposal.find({});
@@ -25,6 +53,7 @@ exports.getSingleProposal = (req, res) => {
 exports.createProposal = catchAsync(async (req, res, next) => {
     const { username, slug } = req.params;
     const { paymentForJob, finishingTime, coverLetter } = req.body;
+    console.log(req.body);
 
     const user = await User.findOne({ userName: username });
     const job = await Job.findOne({ slug });
@@ -45,11 +74,7 @@ exports.createProposal = catchAsync(async (req, res, next) => {
         }
 
         // new proposal object
-        const proposal = new Proposal({
-            paymentForJob,
-            finishingTime,
-            coverLetter,
-        });
+        const proposal = new Proposal(req.body);
 
         // generate random id form proposal assign to proposal
         const proposalId = await generateRandomId();
@@ -60,6 +85,9 @@ exports.createProposal = catchAsync(async (req, res, next) => {
 
         // add freelancer to job
         proposal.freelancer = freelancer._id;
+        upload(req, res, (err) => {
+            console.log(req.file);
+        });
 
         // for initial submittion
         if (!freelancer.proposals.length && !job.proposals.length) {
@@ -163,12 +191,13 @@ exports.createProposal = catchAsync(async (req, res, next) => {
     }
 });
 
-exports.uploadResume = (req, res) => {
+exports.uploadResume = catchAsync(async (req, res) => {
+    console.log(req.file);
     res.status(200).json({
         status: "success",
-        message: "Proposal declined",
+        // message: req,
     });
-};
+});
 
 exports.underReview = (req, res) => {
     res.status(200).json({

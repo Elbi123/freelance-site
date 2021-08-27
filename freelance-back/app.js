@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use("/public", express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/public`));
 
 app.use("/", freelancerRouter);
 app.use("/auth", authRouter);
