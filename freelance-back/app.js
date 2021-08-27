@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
+const cors = require("cors");
 const jobRouter = require("./routes/job.route");
 const authRouter = require("./routes/auth.route");
 const customerRouter = require("./routes/customer.route");
@@ -14,6 +15,8 @@ if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"));
 }
 
+app.use(cors());
+app.use("*", cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use("/public", express.static(`${__dirname}/public`));
