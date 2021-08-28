@@ -74,7 +74,11 @@ exports.createProposal = catchAsync(async (req, res, next) => {
         }
 
         // new proposal object
-        const proposal = new Proposal(req.body);
+        const proposal = new Proposal({
+            paymentForJob,
+            finishingTime,
+            coverLetter,
+        });
 
         // generate random id form proposal assign to proposal
         const proposalId = await generateRandomId();
@@ -85,9 +89,6 @@ exports.createProposal = catchAsync(async (req, res, next) => {
 
         // add freelancer to job
         proposal.freelancer = freelancer._id;
-        upload(req, res, (err) => {
-            console.log(req.file);
-        });
 
         // for initial submittion
         if (!freelancer.proposals.length && !job.proposals.length) {
