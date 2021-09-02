@@ -5,6 +5,7 @@ const Proposal = require("../models/proposal.model");
 const Freelancer = require("../models/freelancer.model");
 const catchAsync = require("../utils/catchAsync");
 const sendEmail = require("../utils/handleSendingEmail");
+const sendEmailToFreelancer = require("../utils/handleFreelancerEmail");
 const generateRandomId = require("../utils/generateRandomId");
 const BadRequestError = require("../utils/error");
 
@@ -21,7 +22,7 @@ const storage = multer.diskStorage({
 });
 
 const multerFilter = (req, file, cb) => {
-    const imageFormats = /pdf|docx|png/;
+    const imageFormats = /pdf|docx/;
     const fileExt = file.mimetype.split("/")[1];
     const checkValidImageFormat = imageFormats.test(fileExt);
 
@@ -36,24 +37,102 @@ const upload = multer({ storage: storage, fileFilter: multerFilter }).single(
 );
 
 exports.getAllProposals = async (req, res) => {
-    const proposal = await Proposal.find({});
+    const { status } = req.query;
+    let proposals;
+    if (status) {
+        proposals = await Proposal.find({ status });
+    } else {
+        proposals = await Proposal.find({});
+    }
     res.status(200).json({
         status: "success",
-        proposal,
+        proposals,
     });
 };
 
-exports.getSingleProposal = (req, res) => {
-    res.status(200).json({
-        status: "success",
-        message: "Single proposal",
-    });
-};
+exports.getUserProposal = catchAsync(async (req, res, next) => {
+    const { status } = req.query;
+    const { username } = req.params;
+
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    if (user.userType === "freelancer") {
+        let proposals;
+        if (status) {
+            proposals = await Proposal.find({
+                $and: [{ freelancer: user.freelancer }, { status }],
+            });
+        } else {
+            proposals = await Proposal.find({ freelancer: user.freelancer });
+        }
+        if (!proposals) {
+            res.status(200).json({
+                status: "success",
+                message: "No proposal has been submitted",
+            });
+        }
+        res.status(200).json({
+            status: "sucess",
+            proposals,
+        });
+    } else if (user.userType === "customer" || user.userType === "company") {
+        const jobs = await Job.find({ customer: user.customer });
+
+        let proposals;
+        for (let i = 0; i < jobs.length; i++) {
+            if (status) {
+                proposals = await Proposal.find({
+                    $and: [{ _id: { $in: jobs[i].proposals } }, { status }],
+                })
+                    .populate({
+                        path: "job",
+                        select: "title description budget -_id",
+                    })
+                    .select("-_id")
+                    .populate({
+                        path: "freelancer",
+                        select: "skills languages experiences user -_id",
+                        populate: {
+                            path: "skills languages experiences user",
+                            select: "name firstName lastName -_id",
+                            populate: { path: "user" },
+                        },
+                    })
+                    .select("-__v");
+            } else {
+                proposals = await Proposal.find({
+                    _id: { $in: jobs[i].proposals },
+                })
+                    .populate({
+                        path: "job",
+                        select: "title description budget -_id",
+                    })
+                    .select("-_id")
+                    .populate({
+                        path: "freelancer",
+                        select: "skills languages experiences user -_id",
+                        populate: {
+                            path: "skills languages experiences user",
+                            select: "name firstName lastName -_id",
+                            populate: { path: "user" },
+                        },
+                    })
+                    .select("-__v");
+            }
+        }
+
+        res.status(200).json({
+            status: "sucess",
+            proposals,
+        });
+    }
+});
 
 exports.createProposal = catchAsync(async (req, res, next) => {
     const { username, slug } = req.params;
     const { paymentForJob, finishingTime, coverLetter } = req.body;
-    console.log(req.body);
 
     const user = await User.findOne({ userName: username });
     const job = await Job.findOne({ slug });
@@ -193,30 +272,149 @@ exports.createProposal = catchAsync(async (req, res, next) => {
 });
 
 exports.uploadResume = catchAsync(async (req, res) => {
-    console.log(req.file);
     res.status(200).json({
         status: "success",
         // message: req,
     });
 });
 
-exports.underReview = (req, res) => {
-    res.status(200).json({
-        status: "success",
-        message: "Proposal under review",
-    });
-};
+// for three status: declined, accepted, under-review
+exports.changeProposalStatus = catchAsync(async (req, res, next) => {
+    const { slug, id } = req.params;
+    const { ustatus } = req.query;
+    const job = await Job.findOne({ slug });
+    const proposal = await Proposal.findOne({ _id: id });
+    if (!job) {
+        return next(new BadRequestError("Job Not Found", 404));
+    }
+    if (!proposal) {
+        return next(new BadRequestError("Proposal Not Found", 404));
+    }
 
-exports.declineProposal = (req, res) => {
-    res.status(200).json({
-        status: "success",
-        message: "Proposal declined",
-    });
-};
+    if (job.proposals.includes(id)) {
+        const proposalStatuses = [
+            "submitted",
+            "under-review",
+            "accepted",
+            "declined",
+        ];
+        if (!proposalStatuses.includes(ustatus)) {
+            return next(new BadRequestError("Status not supported", 401));
+        } else {
+            if (ustatus === "accepted" && proposal.status !== "accepted") {
+                await Proposal.updateOne(
+                    { _id: id },
+                    { status: ustatus },
+                    (err) => {
+                        if (err) {
+                            return next(
+                                new BadRequestError(
+                                    "Error while changing proposal status",
+                                    401
+                                )
+                            );
+                        }
+                    }
+                );
+                const user = await User.findOne({
+                    freelancer: proposal.freelancer,
+                }).select("email");
+                const details = {
+                    email: user.email,
+                    jobTitle: job.jobTitle,
+                    proposalId: proposal.id,
+                };
 
-exports.acceptProposal = (req, res) => {
-    res.status(200).json({
-        status: "success",
-        message: "Proposal accepted",
-    });
-};
+                // send email to freelancer while accepted
+                sendEmailToFreelancer(details);
+
+                res.status(200).json({
+                    status: "success",
+                    message: "You have accepted the proposal",
+                });
+            } else if (
+                ustatus === "accepted" &&
+                proposal.status === "accepted"
+            ) {
+                return next(
+                    new BadRequestError(
+                        "You have already accepted this proposal",
+                        401
+                    )
+                );
+            }
+
+            if (
+                ustatus === "under-review" &&
+                proposal.status !== "under-review"
+            ) {
+                await Proposal.updateOne(
+                    { _id: id },
+                    { status: ustatus },
+                    (err) => {
+                        if (err) {
+                            return next(
+                                new BadRequestError(
+                                    "Error while changing proposal status",
+                                    401
+                                )
+                            );
+                        }
+                    }
+                );
+                res.status(200).json({
+                    status: "success",
+                    message: "Proposal is being reviewed",
+                });
+            } else if (
+                ustatus === "under-review" &&
+                proposal.status === "under-review"
+            ) {
+                return next(
+                    new BadRequestError(
+                        "You have are already reviewing the proposal",
+                        401
+                    )
+                );
+            }
+
+            if (ustatus === "declined" && proposal.status !== "declined") {
+                await Proposal.updateOne(
+                    { _id: id },
+                    { status: ustatus },
+                    (err) => {
+                        if (err) {
+                            return next(
+                                new BadRequestError(
+                                    "Error while changing proposal status",
+                                    401
+                                )
+                            );
+                        }
+                    }
+                );
+                res.status(200).json({
+                    status: "success",
+                    message: "You have declined the proposal",
+                });
+            } else if (
+                ustatus === "declined" &&
+                proposal.status === "declined"
+            ) {
+                return next(
+                    new BadRequestError(
+                        "You have already declined this proposal",
+                        401
+                    )
+                );
+            }
+        }
+    } else {
+        return next(
+            new BadRequestError(
+                "This Proposal has not been submitted to this job",
+                401
+            )
+        );
+    }
+});

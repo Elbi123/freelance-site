@@ -25,7 +25,7 @@ app.use("/jobs", jobRouter);
 app.use("/customers", jobRouter);
 app.use("/potential", customerRouter);
 app.use("/potential", freelancerRouter);
-app.use("/proposal", proposalRouter);
+app.use("/", proposalRouter);
 
 // error middleware - unhadled route
 app.use("*", (req, res, next) => {

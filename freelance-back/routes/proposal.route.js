@@ -1,14 +1,15 @@
 const express = require("express");
 const proposalController = require("../controllers/proposal.controller");
-const multer = require("multer");
-
-const upload = multer({ dest: "public" });
 
 const router = express.Router();
 
-router.get("/", proposalController.getAllProposals);
-router.get("/:proposalId", proposalController.getSingleProposal);
+router.get("/proposals", proposalController.getAllProposals);
+router.get("/:username/proposals", proposalController.getUserProposal);
 router.post("/:username/job/:slug", proposalController.createProposal);
+router.patch(
+    "/jobs/:slug/proposals/:id",
+    proposalController.changeProposalStatus
+);
 // router.post("/upload/resume", , proposalController.);
 
 module.exports = router;

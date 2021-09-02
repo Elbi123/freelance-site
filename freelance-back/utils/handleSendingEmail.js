@@ -1,12 +1,13 @@
 const nodemailer = require("nodemailer");
+const BadRequestError = require("./error");
 
 module.exports = sendEmail = (details) => {
     const transport = nodemailer.createTransport({
         host: "smtp.mailtrap.io",
         port: 2525,
         auth: {
-            user: `${process.env.MAILTRAP_USER}`,
-            pass: `${process.env.MAILTRAP_PASSWORD}`,
+            user: process.env.MAILTRAP_USER,
+            pass: process.env.MAILTRAP_PASSWORD,
         },
     });
 
@@ -21,8 +22,6 @@ module.exports = sendEmail = (details) => {
     };
 
     transport.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return next(new BadRequestError("Internal Server Error", 500));
-        }
+        throw new BadRequestError("Internal Server Error", 500);
     });
 };
