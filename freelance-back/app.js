@@ -6,6 +6,7 @@ const jobRouter = require("./routes/job.route");
 const authRouter = require("./routes/auth.route");
 const customerRouter = require("./routes/customer.route");
 const freelancerRouter = require("./routes/freelancer.route");
+const proposalRouter = require("./routes/proposal.route");
 const BadRequestError = require("./utils/error");
 const errorController = require("./controllers/error.controller");
 
@@ -19,7 +20,7 @@ app.use(cors());
 app.use("*", cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use("/public", express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/public`));
 
 app.use("/", freelancerRouter);
 app.use("/auth", authRouter);
@@ -27,6 +28,7 @@ app.use("/jobs", jobRouter);
 app.use("/customers", jobRouter);
 app.use("/potential", customerRouter);
 app.use("/potential", freelancerRouter);
+app.use("/", proposalRouter);
 
 // error middleware - unhadled route
 app.use("*", (req, res, next) => {
