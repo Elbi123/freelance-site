@@ -7,6 +7,7 @@ const authRouter = require("./routes/auth.route");
 const customerRouter = require("./routes/customer.route");
 const freelancerRouter = require("./routes/freelancer.route");
 const proposalRouter = require("./routes/proposal.route");
+const ticketRouter = require("./routes/ticket.route");
 const BadRequestError = require("./utils/error");
 const errorController = require("./controllers/error.controller");
 
@@ -29,6 +30,7 @@ app.use("/customers", jobRouter);
 app.use("/potential", customerRouter);
 app.use("/potential", freelancerRouter);
 app.use("/", proposalRouter);
+app.use("/tickets", ticketRouter);
 
 // error middleware - unhadled route
 app.use("*", (req, res, next) => {
