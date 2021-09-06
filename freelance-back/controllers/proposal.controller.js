@@ -188,7 +188,7 @@ exports.createProposal = catchAsync(async (req, res, next) => {
                 };
 
                 // send emails
-                sendEmail(details);
+                sendEmail.sendEmail(details);
 
                 res.status(200).json({
                     status: "success",

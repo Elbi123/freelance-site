@@ -1,11 +1,15 @@
 const express = require("express");
 const ticketController = require("../controllers/ticket.controller");
+const ticketMiddleware = require("../middleware/inputValidation.middleware");
 const router = express.Router();
 
-router
-    .route("/")
-    .get(ticketController.getAllTickets)
-    .post(ticketController.issueTicket);
+router.route("/").get(ticketController.getAllTickets);
+
+router.post(
+    "/:username/create-ticket",
+    ticketMiddleware.checkEmptyTicketValidation,
+    ticketController.issueTicket
+);
 
 router
     .route("/:id")
