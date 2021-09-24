@@ -12,10 +12,11 @@ router.post(
 );
 
 router
-    .route("/:id")
+    .route("/:username/ticket/:ticketId")
     .get(ticketController.getTicketByTicketId)
-    .patch(ticketController.assignTicketToAdmins)
     .delete(ticketController.deleteTicket);
+
+router.route("/:username/ticket").patch(ticketController.assignTicket);
 
 // send response back[handle this in any way]
 // either you could have another model for response or just handle it in ticket model
