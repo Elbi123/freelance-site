@@ -66,6 +66,8 @@ const userSchema = new mongoose.Schema(
                 message: "Password doesn't match",
             },
         },
+        // may be you should take this one to respective freelancer and customer model
+        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
         roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
         customer: {
             type: mongoose.Schema.Types.ObjectId,
@@ -88,7 +90,8 @@ userSchema.pre("save", function (next) {
         this.freelancer = undefined;
         this.companyName = undefined;
         this.companyPhone = undefined;
-    } else if (this.userType === "company" || this.userType === "user") {
+        // this.userType === 'user'
+    } else if (this.userType === "company") {
         this.freelancer = undefined;
         this.firstName = undefined;
         this.lastName = undefined;
