@@ -55,6 +55,8 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, "Please provide a password"],
             minLength: 8,
+            // helps to not leak the password when retrieving
+            select: false,
         },
         passwordConfirm: {
             type: String,
@@ -134,6 +136,14 @@ userSchema.pre("save", async function (next) {
     }
     next();
 });
+
+// use instance method to work with comparing password using bcrypt
+userSchema.methods.correctPassword = async function (
+    candidatePassword,
+    userPassword
+) {
+    return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 const User = mongoose.model("User", userSchema);
 
