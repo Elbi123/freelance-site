@@ -1,5 +1,8 @@
 import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/jobs_bloc/jobBloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/jobs_bloc/jobState.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/circularProfilePic.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customAddLink.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customPercentIndicator.dart';
@@ -143,13 +146,39 @@ class _FeedsState extends State<FeedsPage> {
                   color: Colors.white,
                   border: Border.all(color: lightGrey),
                   borderRadius: BorderRadius.circular(2)),
-              child: ListView.builder(
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return FeedsItemCard();
-                  })),
+              child: BlocBuilder<JobsBloc, JobsState>(builder: (_, state) {
+                if (state is JobsOperationFailed) {
+                  return Center(
+                    child: Container(
+                      child: Text("Can't Load Job Feeds Try Again Later."),
+                    ),
+                  );
+                } else if (state is JobsLoadSuccess) {
+                  final jobs = state.job;
+                  if (jobs.length == 0) {
+                    return Center(
+                        child: Text(
+                      "Sorry Their Is No Any Job Post For Now.",
+                      style: boldbluredMediumTextStyle.copyWith(fontSize: 15),
+                    ));
+                  } else {
+                    return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: jobs.length,
+                        itemBuilder: (context, index) {
+                          return FeedsItemCard(jobs: jobs[index]);
+                        });
+                  }
+                }
+                return Container(
+                    child: Center(
+                        child: SizedBox(
+                  child: CircularProgressIndicator(),
+                  height: 30.0,
+                  width: 30.0,
+                )));
+              })),
           GestureDetector(
             onTap: () {},
             child: Container(
@@ -281,14 +310,6 @@ class _FeedsState extends State<FeedsPage> {
                           color: kPrimaryColor),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "50 Availaible Connects For Now",
-                      style: blacksemiboldMediumTextStyle.copyWith(
-                          color: kPrimaryColor),
-                    ),
-                  )
                 ])
               ],
             ))

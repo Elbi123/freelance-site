@@ -1,29 +1,15 @@
 import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:online_freelance_system_flutter_frontend/models/Feeds.dart';
+import 'package:online_freelance_system_flutter_frontend/models/jobs/Job.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/responsivelayout.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routes.dart';
 
 class FeedsItemDetail extends StatefulWidget {
-  final String title;
-  final String description;
-  final String jobType;
-  final String proposals;
-  final String location;
-  final String professionality;
-  final String numOfFreelanceNeeded;
-  const FeedsItemDetail(
-      {Key? key,
-      required this.title,
-      required this.description,
-      required this.jobType,
-      required this.proposals,
-      required this.location,
-      required this.professionality,
-      required this.numOfFreelanceNeeded})
-      : super(key: key);
+  final Job jobs;
+
+  const FeedsItemDetail({Key? key, required this.jobs}) : super(key: key);
 
   @override
   _FeedsItemDetailState createState() => _FeedsItemDetailState();
@@ -32,7 +18,7 @@ class FeedsItemDetail extends StatefulWidget {
 class _FeedsItemDetailState extends State<FeedsItemDetail> {
   @override
   Widget build(BuildContext context) {
-    print(widget.title);
+    print(widget.jobs.title);
     return SingleChildScrollView(
       child: Container(
         width: MediaQuery.of(context).size.width / 1.4,
@@ -61,7 +47,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         border: Border.symmetric(
                             horizontal: BorderSide(color: lightGrey))),
                     child: Text(
-                      "${widget.title}",
+                      "${widget.jobs.title}",
                       style: TextStyle(
                           fontSize: 20,
                           color: Colors.black,
@@ -83,7 +69,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                               fontWeight: FontWeight.w500),
                         ),
                         Text(
-                          " ${widget.jobType} ",
+                          " ${widget.jobs.type} ",
                           style: TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w500),
                         ),
@@ -110,7 +96,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                             horizontal: 15.0, vertical: 8),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget.description}",
+                          text: "${widget.jobs.description}",
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -140,7 +126,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         padding: const EdgeInsets.all(8.0),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget.professionality}",
+                          text: "${widget..jobs.status}",
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -170,7 +156,8 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         padding: const EdgeInsets.all(8.0),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget.location}",
+                          text:
+                              "${widget.jobs.customer.address.country} , ${widget.jobs.customer.address.city}",
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -200,7 +187,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         padding: const EdgeInsets.all(8.0),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget.numOfFreelanceNeeded}",
+                          text: "${widget.jobs.languages}",
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -217,15 +204,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pushNamed(submitproposalroute,
-                        arguments: FeedsDetailArgument(Feeds(
-                            title: widget.title,
-                            description: widget.description,
-                            jobType: widget.jobType,
-                            proposals: widget.proposals,
-                            location: widget.location,
-                            professionality: widget.professionality,
-                            numOfFreelanceNeeded:
-                                widget.numOfFreelanceNeeded)));
+                        arguments: FeedsDetailArgument(widget.jobs));
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width / 5,

@@ -27,6 +27,7 @@ class CustomRectFormField extends StatelessWidget {
             width: 0.5,
             color: lightGrey,
           )),
+      alignment: Alignment.center,
       child: Center(
         child: TextField(
           decoration: InputDecoration(

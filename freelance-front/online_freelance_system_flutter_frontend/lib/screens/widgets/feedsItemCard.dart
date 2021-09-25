@@ -1,25 +1,27 @@
 import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:online_freelance_system_flutter_frontend/models/jobs/Job.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/feeds/feedsItemDetail.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 
 class FeedsItemCard extends StatefulWidget {
+  final dynamic jobs;
   final double? width;
-  const FeedsItemCard({Key? key, this.width}) : super(key: key);
+
+  const FeedsItemCard({
+    Key? key,
+    required this.jobs,
+    this.width,
+  }) : super(key: key);
 
   @override
   _FeedsItemCardState createState() => _FeedsItemCardState();
 }
 
 class _FeedsItemCardState extends State<FeedsItemCard> {
-  String description =
-      "We are a growing IT company and we are looking for a Full Stack Developer for our company. This is full time role and we are looking for a suitable candidates who can grow with our company. Kindly submit your proposal with your rates. Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has? Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?";
-  String title = "Full Stack Developer & IOS Developer.";
-  String jobType = "Houry";
-  String submittedProposals = " Less Than 5";
-  String numberOfFreelancer = "2";
-  String location = " Ethiopia , Addis Ababa";
-  String professionality = " Entry Level";
+  final String submittedProposals = " Less Than 5";
+  final String numberOfFreelancer = "2";
+  final String professionality = " Entry Level";
   String? firstHalf;
   String? secondHalf;
   bool flag = true;
@@ -30,11 +32,12 @@ class _FeedsItemCardState extends State<FeedsItemCard> {
     super.initState();
     favorite = false;
     like = false;
-    if (description.length > 300) {
-      firstHalf = description.substring(0, 300);
-      secondHalf = description.substring(300, description.length);
+    if (widget.jobs.description.length > 300) {
+      firstHalf = widget.jobs.description.substring(0, 300);
+      secondHalf = widget.jobs.description
+          .substring(300, widget.jobs.description.length);
     } else {
-      firstHalf = description;
+      firstHalf = widget.jobs.description;
       secondHalf = "";
     }
   }
@@ -61,19 +64,13 @@ class _FeedsItemCardState extends State<FeedsItemCard> {
                         context: context,
                         builder: (context) {
                           return FeedsItemDetail(
-                            title: title,
-                            description: description,
-                            jobType: jobType,
-                            proposals: submittedProposals,
-                            numOfFreelanceNeeded: numberOfFreelancer,
-                            location: location,
-                            professionality: professionality,
+                            jobs: widget.jobs,
                           );
                         });
                   },
                   child: RichText(
                       text: TextSpan(
-                    text: title,
+                    text: widget.jobs.title,
                     style: feedLinksTextStyle.copyWith(
                         fontWeight: FontWeight.w900, fontSize: 18),
                   )),
@@ -116,7 +113,7 @@ class _FeedsItemCardState extends State<FeedsItemCard> {
             ),
           ),
           Text(
-            "Job Type :$jobType",
+            "Job Type :${widget.jobs.type}",
             style: blackboldMediumTextStyle,
           ),
           Container(
@@ -158,7 +155,7 @@ class _FeedsItemCardState extends State<FeedsItemCard> {
           ),
           Row(
             children: [
-              Text("Location  :$location"),
+              Text("Location  :${widget.jobs.address}"),
               SizedBox(
                 width: 20,
               ),

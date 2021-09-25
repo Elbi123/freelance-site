@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:online_freelance_system_flutter_frontend/models/Feeds.dart';
+import 'package:online_freelance_system_flutter_frontend/models/jobs/Job.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/components/footer.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/components/navbar.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customDrawer.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundButton.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/menuController.dart';
-// import 'package:online_freelance_system_flutter_frontend/utils/routes.dart';
 
 class SubmitProposalPage extends StatefulWidget {
-  final Feeds feedsDetail;
+  final Job feedsDetail;
   const SubmitProposalPage({
     Key? key,
     required this.feedsDetail,
@@ -82,28 +81,28 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                 Container(
                   margin: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
-                    "${widget.feedsDetail.jobType}",
+                    "${widget.feedsDetail.type}",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
-                    "${widget.feedsDetail.location}",
+                    "${widget.feedsDetail.customer.address.country} , ${widget.feedsDetail.customer.address.city}",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
-                    "${widget.feedsDetail.professionality}",
+                    "${widget.feedsDetail.languages}",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
-                    "${widget.feedsDetail.proposals}",
+                    "${widget.feedsDetail.createdAt}",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -180,6 +179,7 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                   minLines: 3,
                 ),
                 CustomRoundButton(
+                  onPressed: () {},
                   title: "Attach File",
                   checktitle: "blue",
                   iconData: Icons.attach_file,
@@ -188,11 +188,16 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                 Row(
                   children: [
                     CustomRoundButton(
-                        title: "Submit Proposal     ", checktitle: "secondary"),
+                        onPressed: () {},
+                        title: "Submit Proposal     ",
+                        checktitle: "secondary"),
                     SizedBox(
                       width: 20,
                     ),
-                    CustomRoundButton(title: "Cancel    ", checktitle: "white")
+                    CustomRoundButton(
+                        onPressed: () {},
+                        title: "Cancel    ",
+                        checktitle: "white")
                   ],
                 )
               ],

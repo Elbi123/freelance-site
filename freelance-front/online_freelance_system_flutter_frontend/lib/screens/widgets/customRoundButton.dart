@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:meta/meta.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 
 class CustomRoundButton extends StatelessWidget {
   final String title;
   final String checktitle;
+  final Function() onPressed;
   final IconData? iconData;
   const CustomRoundButton(
-      {Key? key, required this.title, this.iconData, required this.checktitle})
+      {Key? key,
+      required this.title,
+      this.iconData,
+      required this.checktitle,
+      required this.onPressed})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onPressed,
       onHover: (value) {},
       child: Container(
         height: 50,

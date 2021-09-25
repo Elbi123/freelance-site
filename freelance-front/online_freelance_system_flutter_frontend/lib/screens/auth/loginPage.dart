@@ -1,11 +1,20 @@
 import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/auth_bloc/authBloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/auth_bloc/authEvent.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/auth_bloc/authState.dart';
+import 'package:online_freelance_system_flutter_frontend/models/User.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundButton.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundFormField.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
+import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, dynamic> _user = {};
+  LoginPage({Key? key}) : super(key: key);
+  static FormState _formState = FormState();
 
   @override
   Widget build(BuildContext context) {
@@ -93,57 +102,97 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _formBody(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width / 3,
-      margin: EdgeInsets.all(60),
-      padding: EdgeInsets.all(80),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: lightGrey, width: 2.0),
-          borderRadius: BorderRadius.circular(5)),
-      child: Column(
-        children: [
-          Container(
-            child: Text(
-              "Login In Etwork",
+    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+      if (state.isAuthenticated) {
+        Navigator.pushNamed(context, homepageroute);
+      } else {
+        print(loginpageroute);
+      }
+      return Container(
+        width: MediaQuery.of(context).size.width / 3,
+        margin: EdgeInsets.all(60),
+        padding: EdgeInsets.all(80),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: lightGrey, width: 2.0),
+            borderRadius: BorderRadius.circular(5)),
+        child: Column(
+          children: [
+            Container(
+              child: Text(
+                "Login In Etwork",
+                style: greenNavButtonTextStyle,
+              ),
+            ),
+            Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CustomRoundFormField(
+                        onSaved: (value) {
+                          this._user['email'] = value;
+                        },
+                        hintText: "Email",
+                        prefixIconData: Icons.person),
+                    CustomRoundFormField(
+                      onSaved: (value) {
+                        this._user['password'] = value;
+                      },
+                      hintText: "Password",
+                      prefixIconData: Icons.lock,
+                      checkTitle: "secondary",
+                      suffixIconData: Icons.remove_red_eye,
+                    ),
+                    CustomRoundButton(
+                      onPressed: () {
+                        final form = _formKey.currentState;
+
+                        if (form!.validate()) {
+                          form.save();
+                          // print(this._user);
+                          final AuthEvent event = AuthLogin(
+                              this._user["email"], this._user["password"]);
+                          BlocProvider.of<AuthBloc>(context).add(event);
+                        }
+                        Navigator.pushNamed(context, '/home');
+                      },
+                      title: "Login",
+                      checktitle: "primary",
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 10),
+                      child: Text('or',
+                          style:
+                              TextStyle(decoration: TextDecoration.overline)),
+                    ),
+                    CustomRoundButton(
+                      onPressed: () {},
+                      title: "Continue With Google",
+                      iconData: AntIcons.google,
+                      checktitle: "blue",
+                    ),
+                    CustomRoundButton(
+                      onPressed: () {},
+                      checktitle: "black",
+                      title: "Continue With Apple",
+                      iconData: AntIcons.apple,
+                    ),
+                  ],
+                )),
+            Divider(),
+            Text(
+              "Don't Have An Account ?",
               style: greenNavButtonTextStyle,
             ),
-          ),
-          CustomRoundFormField(
-              hintText: "Username or Email", prefixIconData: Icons.person),
-          CustomRoundFormField(
-            hintText: "Password",
-            prefixIconData: Icons.lock,
-            checkTitle: "secondary",
-            suffixIconData: Icons.remove_red_eye,
-          ),
-          CustomRoundButton(
-            title: "Login",
-            checktitle: "secondary",
-          ),
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 10),
-            child: Text('or',
-                style: TextStyle(decoration: TextDecoration.overline)),
-          ),
-          CustomRoundButton(
-            title: "Continue With Google",
-            iconData: AntIcons.google,
-            checktitle: "blue",
-          ),
-          CustomRoundButton(
-            checktitle: "black",
-            title: "Continue With Apple",
-            iconData: AntIcons.apple,
-          ),
-          Divider(),
-          Text(
-            "Don't Have An Account ?",
-            style: greenNavButtonTextStyle,
-          ),
-          CustomRoundButton(title: "Sign Up", checktitle: "secondary")
-        ],
-      ),
-    );
+            CustomRoundButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/signup');
+                },
+                title: "Sign Up",
+                checktitle: "secondary")
+          ],
+        ),
+      );
+    });
   }
 }

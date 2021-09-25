@@ -30,7 +30,7 @@ class _LargeChildState extends State<LargeChild> {
             widthFactor: 0.5,
             child: Padding(
               padding: const EdgeInsets.only(right: 30),
-              child: Image.asset('/freelancebanner4.png'),
+              child: Image.asset('/freelancebanner3.png'),
             ),
           ),
           FractionallySizedBox(
@@ -121,7 +121,7 @@ class _LargeChildState extends State<LargeChild> {
                             ),
                           )),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+const String apiUrl = 'http://freelance-elance.herokuapp.com';
 const Color white = Color(0xFFFFFFFF);
 const Color kPrimaryColor = Color(0xFF149FD6);
 const Color kPrimaryLight = Color(0xFF78BCC4);

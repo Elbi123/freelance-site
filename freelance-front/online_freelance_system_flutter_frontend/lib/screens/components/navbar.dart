@@ -23,10 +23,9 @@ class _NavBarState extends State<NavBar> {
   }
 
   final navLinks = [
-    ["Find Work", ""],
+    ["Find Work", homepageroute],
     ["My Jobs", myjobsroute],
     ["Reports", ""],
-    ["Messages", ""]
   ];
 
   List<Widget> navItem() {
@@ -75,29 +74,34 @@ class _NavBarState extends State<NavBar> {
                 _controller.openOrCloseDrawer();
               },
             ),
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                    color: white, borderRadius: BorderRadius.circular(18)),
-                child: Center(
-                    child: Text(
-                  "E",
+          InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, '/home');
+            },
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      color: white, borderRadius: BorderRadius.circular(18)),
+                  child: Center(
+                      child: Text(
+                    "E",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        color: kPrimaryColor),
+                  )),
+                ),
+                SizedBox(width: 16),
+                Text(
+                  "Elance",
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      color: kPrimaryColor),
-                )),
-              ),
-              SizedBox(width: 16),
-              Text(
-                "Elance",
-                style: TextStyle(
-                    color: white, fontSize: 20, fontWeight: FontWeight.bold),
-              )
-            ],
+                      color: white, fontSize: 20, fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
           ),
           Responsive.isMobileScreen(context) ||
                   Responsive.isMediumScreen(context)
@@ -162,12 +166,18 @@ class _NavBarState extends State<NavBar> {
                                   ? Row(
                                       children: [
                                         IconButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                                context, notificationsroute);
+                                          },
                                           icon: Icon(AntIcons.notification),
                                           color: Colors.white,
                                         ),
                                         IconButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                                context, messageroute);
+                                          },
                                           icon: Icon(AntIcons.message),
                                           color: Colors.white,
                                         ),

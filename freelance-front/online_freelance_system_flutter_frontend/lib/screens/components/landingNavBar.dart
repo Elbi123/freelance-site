@@ -168,7 +168,10 @@ class LandingNavBar extends StatelessWidget {
                                               ),
                                             )),
                                         InkWell(
-                                            onTap: () {},
+                                            onTap: () {
+                                              Navigator.pushNamed(
+                                                  context, signuppageroute);
+                                            },
                                             child: Container(
                                               margin: EdgeInsets.only(left: 5),
                                               width: 110,
