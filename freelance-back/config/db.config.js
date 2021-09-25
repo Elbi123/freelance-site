@@ -23,9 +23,10 @@ const connectDB = async () => {
 
         // init function
         entry();
-        // if (process.env.NODE_ENV === "development") {
-        console.log(`Mongodb connected successfully from ${db.host}`);
-        // }
+
+        if (process.env.NODE_ENV === "development") {
+            console.log(`Mongodb connected successfully from ${db.host}`);
+        }
     } catch (err) {
         if (process.env.NODE_ENV === "development") {
             console.log(err);
@@ -46,7 +47,15 @@ function entry() {
             });
 
             new Role({
-                name: "client",
+                name: "customer",
+            }).save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            new Role({
+                name: "company",
             }).save((err) => {
                 if (err) {
                     throw new Error(err);
