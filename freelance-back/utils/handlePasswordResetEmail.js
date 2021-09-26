@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const BadRequestError = require("./error");
 
-module.exports = sendEmail = (details) => {
+exports.sendPasswordResetEmail = async (details) => {
     const transport = nodemailer.createTransport({
         host: "smtp.mailtrap.io",
         port: 2525,
@@ -14,14 +14,11 @@ module.exports = sendEmail = (details) => {
     const mailOptions = {
         from: '"Example Team" <from@example.com>',
         to: `${details.email}`,
-        subject: "Job submission notification",
-        text: "You have submitted proposal for the job",
-        html: `<b>Hey there! </b><br> You have successfully submitted proposal<br>
-    Job title: ${details.jobTitle}<br>
-    Proposal id: ${details.proposalId}<br>`,
+        subject: `${details.subject}`,
+        text: `${details.text}`,
     };
 
-    transport.sendMail(mailOptions, (error, info) => {
+    await transport.sendMail(mailOptions, (error, info) => {
         if (error) {
             throw new BadRequestError("Internal Server Error", 500);
         }

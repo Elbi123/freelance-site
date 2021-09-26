@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
@@ -68,6 +69,8 @@ const userSchema = new mongoose.Schema(
                 message: "Password doesn't match",
             },
         },
+        passwordResetToken: String,
+        passwordResetExpires: Date,
         roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
         customer: {
             type: mongoose.Schema.Types.ObjectId,
@@ -101,15 +104,6 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre("save", async function (next) {
-    await this.constructor.findOne({ email: this.email }, function (err, user) {
-        if (user) {
-            next(new BadRequestError("Email has already been taken"));
-        }
-    });
-    next();
-});
-
-userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password, 12);
@@ -119,23 +113,23 @@ userSchema.pre("save", async function (next) {
     next();
 });
 
-userSchema.pre("save", async function (next) {
-    if (this.userName) {
-        await this.constructor.findOne(
-            { userName: this.userName },
-            function (err, user) {
-                if (user) {
-                    next(
-                        new BadRequestError("Username has already been taken")
-                    );
-                }
-            }
-        );
-    } else {
-        this.userName = this.email.split("@")[0];
-    }
-    next();
-});
+// userSchema.pre("save", async function (next) {
+//     if (this.userName) {
+//         await this.constructor.findOne(
+//             { userName: this.userName },
+//             function (err, user) {
+//                 if (user) {
+//                     next(
+//                         new BadRequestError("Username has already been taken")
+//                     );
+//                 }
+//             }
+//         );
+//     } else {
+//         this.userName = this.email.split("@")[0];
+//     }
+//     next();
+// });
 
 // use instance method to work with comparing password using bcrypt
 userSchema.methods.correctPassword = async function (
@@ -144,6 +138,31 @@ userSchema.methods.correctPassword = async function (
 ) {
     return await bcrypt.compare(candidatePassword, userPassword);
 };
+
+userSchema.methods.createPasswordResetToken = function () {
+    // 1- generate plain token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // 2- hash the generated token
+    this.passwordResetToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+    console.log({ resetToken }, this.passwordResetToken);
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+};
+
+// userSchema.pre("save", async function (next) {
+//     await this.constructor.findOne({ email: this.email }, function (err, user) {
+//         if (user) {
+//             next(new BadRequestError("Email has already been taken"));
+//         }
+//     });
+//     next();
+// });
 
 const User = mongoose.model("User", userSchema);
 
