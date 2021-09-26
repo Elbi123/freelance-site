@@ -7,8 +7,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:online_freelance_system_flutter_frontend/data_provider/jobsDataProvider.dart';
 
 import 'package:online_freelance_system_flutter_frontend/main.dart';
+import 'package:online_freelance_system_flutter_frontend/repository/jobsRepo.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
