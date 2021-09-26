@@ -4,8 +4,12 @@ import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 class CustomRoundFormField extends StatefulWidget {
   final IconData? prefixIconData, suffixIconData;
   final String hintText;
+  final bool isObscure;
   final double? width;
   final String? checkTitle;
+  final FocusNode? fnode;
+  final FocusNode? nextFocus;
+  final TextEditingController? textEditingController;
   final void Function(String? value)? onSaved;
   const CustomRoundFormField(
       {Key? key,
@@ -13,6 +17,10 @@ class CustomRoundFormField extends StatefulWidget {
       this.suffixIconData,
       required this.hintText,
       this.width,
+      this.textEditingController,
+      this.fnode,
+      required this.isObscure,
+      this.nextFocus,
       this.checkTitle,
       this.onSaved})
       : super(key: key);
@@ -22,19 +30,13 @@ class CustomRoundFormField extends StatefulWidget {
 }
 
 class _CustomRoundFormFieldState extends State<CustomRoundFormField> {
-  final FocusNode focusNode = FocusNode();
+  bool validate = false;
 
   @override
-  void initState() {
-    super.initState();
-    focusNode.addListener(() {
-      if (focusNode.hasFocus) {
-        this.widget.hintText == "";
-      } else {
-        this.widget.hintText == this.widget.hintText;
-      }
-      // setState(() {});
-    });
+  void dispose() {
+    // TODO: implement dispose
+    this.widget.textEditingController!.dispose();
+    super.dispose();
   }
 
   @override
@@ -50,9 +52,16 @@ class _CustomRoundFormFieldState extends State<CustomRoundFormField> {
             color: customGrey,
           )),
       child: TextFormField(
-        focusNode: focusNode,
+        obscureText: this.widget.isObscure,
+        focusNode: this.widget.fnode,
         onSaved: this.widget.onSaved,
+        onFieldSubmitted: (term) {
+          this.widget.fnode!.unfocus();
+          FocusScope.of(context).requestFocus(this.widget.nextFocus);
+        },
         decoration: InputDecoration(
+            labelText: "${this.widget.hintText}",
+            errorText: validate ? "Value Can't Be Empty" : null,
             prefixIcon: IconButton(
                 onPressed: () {},
                 iconSize: 18,
@@ -71,9 +80,16 @@ class _CustomRoundFormFieldState extends State<CustomRoundFormField> {
                           : kPrimaryColor,
                     ))
                 : null,
-            hintText: "${this.widget.hintText}",
+            // hintText: "${this.widget.hintText}",
             border: InputBorder.none),
       ),
     );
+  }
+
+  String validatePassword(String value, String hintText) {
+    if (!(value.length > 5) && value.isNotEmpty) {
+      return "$hintText Can";
+    }
+    return "";
   }
 }

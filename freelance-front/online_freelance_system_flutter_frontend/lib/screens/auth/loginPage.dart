@@ -104,9 +104,11 @@ class LoginPage extends StatelessWidget {
   Widget _formBody(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
       if (state.isAuthenticated) {
-        Navigator.pushNamed(context, homepageroute);
+        if (state.user!.userType == "") {
+          Navigator.pushNamed(context, homepageroute);
+        }
       } else {
-        print(loginpageroute);
+        print("No Men");
       }
       return Container(
         width: MediaQuery.of(context).size.width / 3,
@@ -129,12 +131,14 @@ class LoginPage extends StatelessWidget {
                 child: Column(
                   children: [
                     CustomRoundFormField(
+                        isObscure: false,
                         onSaved: (value) {
                           this._user['email'] = value;
                         },
                         hintText: "Email",
                         prefixIconData: Icons.person),
                     CustomRoundFormField(
+                      isObscure: true,
                       onSaved: (value) {
                         this._user['password'] = value;
                       },

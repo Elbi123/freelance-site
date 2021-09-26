@@ -179,16 +179,22 @@ class _FeedsState extends State<FeedsPage> {
                   width: 30.0,
                 )));
               })),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10),
-              child: Text(
-                "Load More ... ",
-                style: blackboldMediumTextStyle.copyWith(color: kPrimaryColor),
-              ),
-            ),
-          ),
+          BlocBuilder<JobsBloc, JobsState>(builder: (_, state) {
+            if (state is JobsLoadSuccess) {
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  margin: EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    "Load More ... ",
+                    style:
+                        blackboldMediumTextStyle.copyWith(color: kPrimaryColor),
+                  ),
+                ),
+              );
+            }
+            return Text("");
+          })
         ],
       ),
     );

@@ -20,6 +20,29 @@ class SignUpPage extends StatefulWidget {
 class _SignupPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _user = {};
+  FocusNode? fname, lname, username, email, phonenumber, password;
+  @override
+  void initState() {
+    super.initState();
+    fname = FocusNode();
+    lname = FocusNode();
+    username = FocusNode();
+    email = FocusNode();
+    phonenumber = FocusNode();
+    password = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    fname!.dispose();
+    lname!.dispose();
+    username!.dispose();
+    email!.dispose();
+    phonenumber!.dispose();
+    password!.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +157,9 @@ class _SignupPageState extends State<SignUpPage> {
                   child: Text("SignUp In Etwork"),
                 ),
                 CustomRoundFormField(
+                  isObscure: false,
+                  fnode: fname,
+                  nextFocus: lname,
                   onSaved: (value) {
                     this._user['firstname'] = value;
                   },
@@ -141,6 +167,9 @@ class _SignupPageState extends State<SignUpPage> {
                   prefixIconData: Icons.person,
                 ),
                 CustomRoundFormField(
+                  isObscure: false,
+                  fnode: lname,
+                  nextFocus: username,
                   onSaved: (value) {
                     this._user['lastname'] = value;
                   },
@@ -148,24 +177,36 @@ class _SignupPageState extends State<SignUpPage> {
                   prefixIconData: Icons.person,
                 ),
                 CustomRoundFormField(
+                    isObscure: false,
+                    nextFocus: email,
+                    fnode: username,
                     onSaved: (value) {
                       this._user['username'] = value;
                     },
                     hintText: "Username",
                     prefixIconData: Icons.person),
                 CustomRoundFormField(
+                    isObscure: false,
+                    nextFocus: phonenumber,
+                    fnode: email,
                     onSaved: (value) {
                       this._user['email'] = value;
                     },
                     hintText: "@example.com",
                     prefixIconData: Icons.email),
                 CustomRoundFormField(
+                    isObscure: false,
+                    nextFocus: password,
+                    fnode: phonenumber,
                     onSaved: (value) {
                       this._user['phonenumber'] = value;
                     },
                     hintText: "Phone Number",
                     prefixIconData: Icons.phone),
                 CustomRoundFormField(
+                  isObscure: true,
+                  nextFocus: null,
+                  fnode: password,
                   onSaved: (value) {
                     this._user['password'] = value;
                   },
