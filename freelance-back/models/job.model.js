@@ -41,7 +41,13 @@ const jobSchema = new Schema(
         status: {
             type: String,
             enum: {
-                values: ["open", "closed"],
+                values: [
+                    "open",
+                    "in-progress",
+                    "submitted",
+                    "approved",
+                    "closed",
+                ],
                 message: "{VALUE} is not supported",
             },
             default: "open",
