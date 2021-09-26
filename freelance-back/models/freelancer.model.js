@@ -52,7 +52,7 @@ const freelancerSchema = new mongoose.Schema(
 
         // proposals
         proposals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proposal" }],
-
+        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
     { timestamps: true }
