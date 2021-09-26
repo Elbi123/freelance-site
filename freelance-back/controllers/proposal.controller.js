@@ -278,10 +278,9 @@ exports.uploadResume = catchAsync(async (req, res) => {
     });
 });
 
-// for three status: declined, accepted, under-review
 exports.changeProposalStatus = catchAsync(async (req, res, next) => {
     const { slug, id } = req.params;
-    const { ustatus } = req.query;
+    const { status } = req.body;
     const job = await Job.findOne({ slug });
     const proposal = await Proposal.findOne({ _id: id });
     if (!job) {
@@ -294,127 +293,164 @@ exports.changeProposalStatus = catchAsync(async (req, res, next) => {
     if (job.proposals.includes(id)) {
         const proposalStatuses = [
             "submitted",
-            "under-review",
             "accepted",
+            "under-review",
+            "approved",
             "declined",
         ];
-        if (!proposalStatuses.includes(ustatus)) {
+        if (!proposalStatuses.includes(status)) {
             return next(new BadRequestError("Status not supported", 401));
         } else {
-            if (ustatus === "accepted" && proposal.status !== "accepted") {
-                await Proposal.updateOne(
-                    { _id: id },
-                    { status: ustatus },
-                    (err) => {
-                        if (err) {
-                            return next(
-                                new BadRequestError(
-                                    "Error while changing proposal status",
-                                    401
-                                )
-                            );
-                        }
-                    }
-                );
-                const user = await User.findOne({
-                    freelancer: proposal.freelancer,
-                }).select("email");
-                const details = {
-                    email: user.email,
-                    jobTitle: job.jobTitle,
-                    proposalId: proposal.id,
-                };
-
-                // send email to freelancer while accepted
-                sendEmailToFreelancer(details);
-
-                res.status(200).json({
-                    status: "success",
-                    message: "You have accepted the proposal",
-                });
-            } else if (
-                ustatus === "accepted" &&
-                proposal.status === "accepted"
-            ) {
-                return next(
-                    new BadRequestError(
-                        "You have already accepted this proposal",
-                        401
-                    )
-                );
-            }
-
-            if (
-                ustatus === "under-review" &&
-                proposal.status !== "under-review"
-            ) {
-                await Proposal.updateOne(
-                    { _id: id },
-                    { status: ustatus },
-                    (err) => {
-                        if (err) {
-                            return next(
-                                new BadRequestError(
-                                    "Error while changing proposal status",
-                                    401
-                                )
-                            );
-                        }
-                    }
-                );
-                res.status(200).json({
-                    status: "success",
-                    message: "Proposal is being reviewed",
-                });
-            } else if (
-                ustatus === "under-review" &&
-                proposal.status === "under-review"
-            ) {
-                return next(
-                    new BadRequestError(
-                        "You have are already reviewing the proposal",
-                        401
-                    )
-                );
-            }
-
-            if (ustatus === "declined" && proposal.status !== "declined") {
-                await Proposal.updateOne(
-                    { _id: id },
-                    { status: ustatus },
-                    (err) => {
-                        if (err) {
-                            return next(
-                                new BadRequestError(
-                                    "Error while changing proposal status",
-                                    401
-                                )
-                            );
-                        }
-                    }
-                );
-                res.status(200).json({
-                    status: "success",
-                    message: "You have declined the proposal",
-                });
-            } else if (
-                ustatus === "declined" &&
-                proposal.status === "declined"
-            ) {
-                return next(
-                    new BadRequestError(
-                        "You have already declined this proposal",
-                        401
-                    )
-                );
+            // the "accept" will go here
+            if (status === "accepted") {
+                await handleJobAccept(status, proposal, id, res, next);
+            } else if (status === "under-review") {
+                await handleJobUnderReview(status, proposal, id, res, next);
+            } else if (status === "approved") {
+                await handleJobApproved(status, proposal, id, res, job, next);
+            } else if (status === "declined") {
+                await handleJobDecline(status, proposal, id, res, next);
             }
         }
     } else {
         return next(
             new BadRequestError(
-                "This Proposal has not been submitted to this job",
+                "The proposal has not been submitted to this job",
                 401
             )
         );
     }
 });
+
+const handleJobAccept = async (status, proposal, id, res, next) => {
+    console.log(status);
+    if (status === "accepted" && proposal.status === "submitted") {
+        await Proposal.updateOne({ _id: id }, { status }, (err) => {
+            if (err) {
+                return next(
+                    new BadRequestError(
+                        "Error while changing proposal status",
+                        401
+                    )
+                );
+            }
+            res.status(200).json({
+                status: "message",
+                message: `You have ${status} the proposal`,
+            });
+        });
+    } else if (status === "accepted" && proposal.status === "accepted") {
+        return next(
+            new BadRequestError("You have already accepted this proposal", 401)
+        );
+    } else {
+        return next(
+            new BadRequestError(
+                "Can't update the status. Make sure the proposal is in submitted status",
+                401
+            )
+        );
+    }
+};
+
+const handleJobUnderReview = async (status, proposal, id, res, next) => {
+    // 1- get the job proposal id
+    if (status === "under-review" && proposal.status === "accepted") {
+        await Proposal.updateOne({ _id: id }, { status }, (err) => {
+            if (err) {
+                return next(
+                    new BadRequestError(
+                        "Error while changing proposal status",
+                        401
+                    )
+                );
+            }
+            res.status(200).json({
+                status: "message",
+                message: `The proposal is ${status}`,
+            });
+        });
+    } else if (
+        status === "under-review" &&
+        proposal.status === "under-review"
+    ) {
+        return next(
+            new BadRequestError(`Your proposal is already ${status}`, 401)
+        );
+    } else {
+        return next(
+            new BadRequestError(
+                "Can't update the status. Make sure you accepted the proposal",
+                401
+            )
+        );
+    }
+};
+
+const handleJobApproved = async (status, proposal, id, res, job, next) => {
+    if (status === "approved" && proposal.status === "under-review") {
+        await Proposal.updateOne({ _id: id }, { status }, async (err) => {
+            if (err) {
+                return next(
+                    new BadRequestError(
+                        "Error while changing proposal status",
+                        401
+                    )
+                );
+            }
+
+            const user = await User.findOne({
+                freelancer: proposal.freelancer,
+            }).select("email");
+            const details = {
+                email: user.email,
+                jobTitle: job.title,
+                proposalId: proposal.id,
+            };
+
+            // // send email to freelancer while accepted
+            sendEmailToFreelancer(details);
+
+            // changing the job status to 'approved' immediately changes the job status
+            // to 'in-progress'
+            await Job.updateOne({ _id: job._id }, { status: "in-progress" });
+
+            res.status(200).json({
+                status: "message",
+                message: `The proposal is ${status}`,
+            });
+        });
+    } else {
+        return next(
+            new BadRequestError(
+                "Wanna approve the proposal? Make sure your first made the proposal under-review"
+            )
+        );
+    }
+};
+
+const handleJobDecline = async (status, proposal, id, res, next) => {
+    if (status === "declined") {
+        await Proposal.updateOne({ _id: id }, { status: status }, (err) => {
+            if (err) {
+                return next(
+                    new BadRequestError(
+                        "Error while changing proposal status",
+                        401
+                    )
+                );
+            }
+        });
+        res.status(200).json({
+            status: "success",
+            message: `You have ${status} the proposal`,
+        });
+    } else {
+        return next(
+            new BadRequestError(
+                `You wanna decline? change proposal status to ${status}`,
+                403
+            )
+        );
+    }
+};
