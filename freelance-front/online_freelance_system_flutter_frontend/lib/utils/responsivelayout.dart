@@ -1,44 +1,54 @@
 import 'package:flutter/material.dart';
 
 class Responsive extends StatelessWidget {
-  final Widget? extraSmallScreen, smallScreen, mediumScreen, largeScreen;
+  final Widget? extraLargeScreen,
+      largeScreen,
+      smallScreen,
+      extraSmallScreen,
+      tabScreen,
+      mobileScreen;
 
   const Responsive({
     Key? key,
-    this.extraSmallScreen,
-    this.smallScreen,
-    this.mediumScreen,
+    this.extraLargeScreen,
     this.largeScreen,
+    this.smallScreen,
+    this.extraSmallScreen,
+    this.tabScreen,
+    this.mobileScreen,
   }) : super(key: key);
 
 // This size work fine on my design, maybe you need some customization depends on your design
-
-  static bool isXS(BuildContext context) =>
-      MediaQuery.of(context).size.width < 768;
-  static bool isSM(BuildContext context) =>
-      MediaQuery.of(context).size.width < 992 &&
-      MediaQuery.of(context).size.width >= 768;
-  static bool isMD(BuildContext context) =>
-      MediaQuery.of(context).size.width < 1200 &&
-      MediaQuery.of(context).size.width >= 992;
-  static bool isLG(BuildContext context) =>
-      MediaQuery.of(context).size.width >= 1200;
+  static bool isMobileScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 769 &&
+      MediaQuery.of(context).size.width > 300;
+  static bool isMediumScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width < 1025 &&
+      MediaQuery.of(context).size.width >= 769;
+  static bool isLargeScreen(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1025;
+  // static bool isSmallScreen(BuildContext context) =>
+  //     MediaQuery.of(context).size.width >= 1201 &&
+  //     MediaQuery.of(context).size.width < 1366;
+  // static bool isLargeScreen(BuildContext context) =>
+  //     MediaQuery.of(context).size.width >= 1366 &&
+  //     MediaQuery.of(context).size.width < 1536;
+  // static bool isExtraLargeScreen(BuildContext context) =>
+  //     MediaQuery.of(context).size.width >= 1536;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // for larger Screeen
-        if (constraints.maxWidth >= 1200) {
+        if (constraints.maxWidth >= 1201) {
           return largeScreen!;
         }
-        // for medium Screen
-        else if (constraints.maxWidth >= 992) {
-          return mediumScreen!;
-        }
-        //for small Screen
-        else if (constraints.maxWidth >= 768) {
-          return smallScreen!;
+        //for extra small screen
+        else if (constraints.maxWidth >= 1025) {
+          return extraSmallScreen!;
+        } //for tab screen
+        else if (constraints.maxWidth >= 769) {
+          return tabScreen!;
         }
         //for extra Screen
         else {

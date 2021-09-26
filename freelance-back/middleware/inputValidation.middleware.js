@@ -77,16 +77,24 @@ exports.checkEmptyJobValidation = (req, res, next) => {
 
         // env = 'production'
     } else if (process.env.NODE_ENV === "production") {
-        if (!title) {
-            next(new BadRequestError("Title is required", 400));
+        if (
+            !title &&
+            !description &&
+            !address &&
+            !skillsNeeded.length &&
+            !budget
+        ) {
+            return next(new BadRequestError("Fill all required fields", 400));
+        } else if (!title) {
+            return next(new BadRequestError("Title is required", 400));
         } else if (!description) {
-            next(new BadRequestError("Description is required", 400));
+            return next(new BadRequestError("Description is required", 400));
         } else if (!address) {
-            next(new BadRequestError("Address is required"));
+            return next(new BadRequestError("Address is required", 400));
         } else if (!skillsNeeded.length) {
-            next(new BadRequestError("Needed skills are required"));
+            return next(new BadRequestError("Needed skills are required", 400));
         } else if (!budget) {
-            next(new BadRequestError("Budget is needed"));
+            return next(new BadRequestError("Budget is needed", 400));
         }
     }
 
@@ -130,5 +138,23 @@ exports.checkCustomerDetail = (req, res, next) => {
         legalInformation,
     };
     req.body = customerDetail;
+    next();
+};
+
+exports.checkEmptyTicketValidation = (req, res, next) => {
+    const { inputUsername, summary } = req.body;
+
+    if (!inputUsername && !summary) {
+        return next(new BadRequestError("Fill all required fields", 400));
+    } else if (!inputUsername) {
+        return next(new BadRequestError("Provide username", 400));
+    } else if (!summary) {
+        return next(new BadRequestError("Provide summary", 400));
+    }
+    const ticketDetail = {
+        inputUsername,
+        summary,
+    };
+    req.body = ticketDetail;
     next();
 };

@@ -49,6 +49,10 @@ const freelancerSchema = new mongoose.Schema(
         ],
         languages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Language" }],
         image: { type: mongoose.Schema.Types.ObjectId, ref: "Image" },
+
+        // proposals
+        proposals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proposal" }],
+        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
     { timestamps: true }
