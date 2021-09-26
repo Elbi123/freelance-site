@@ -41,7 +41,12 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
         img: req.body.img,
         roles: req.body.roles,
     };
-    if (user.userType === "customer" || user.userType === "freelancer") {
+    console.log(user.userType);
+    if (
+        user.userType === "customer" ||
+        user.userType === "freelancer" ||
+        user.userType === "user"
+    ) {
         user.companyName = "company-name";
         user.companyPhone = "0909090909";
     } else if (user.userType === "company") {

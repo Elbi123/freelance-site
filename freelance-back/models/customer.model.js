@@ -27,16 +27,10 @@ const customerSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
-        jobs: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Job",
-            },
-        ],
+
+        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
+        jobs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }],
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
     { timestamps: true }
 );
