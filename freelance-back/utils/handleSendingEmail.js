@@ -22,7 +22,9 @@ exports.sendEmail = (details) => {
     };
 
     transport.sendMail(mailOptions, (error, info) => {
-        throw new BadRequestError("Internal Server Error", 500);
+        if (error) {
+            throw new BadRequestError("Internal Server Error", 500);
+        }
     });
 };
 
