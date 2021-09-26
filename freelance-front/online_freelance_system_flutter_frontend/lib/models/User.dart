@@ -38,5 +38,5 @@ class User extends Equatable {
   }
   @override
   String toString() =>
-      'User {id:$id, name : $userName,email:$email,role:$userType,image:$phonenumber}';
+      'User {id:$id,firstName : $firstname,lastname : $lastname, name : $userName,email:$email,role:$userType,phoneNumber:$phonenumber}';
 }

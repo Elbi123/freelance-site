@@ -7,6 +7,7 @@ import 'package:online_freelance_system_flutter_frontend/bloc/auth_bloc/authStat
 import 'package:online_freelance_system_flutter_frontend/models/User.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundButton.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundFormField.dart';
+import 'package:online_freelance_system_flutter_frontend/screens/widgets/dropDownList.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 
@@ -19,11 +20,15 @@ class SignUpPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+  static bool isLoading = false;
+  static bool isFailed = false;
   final Map<String, dynamic> _user = {};
   FocusNode? fname, lname, username, email, phonenumber, password;
   @override
   void initState() {
     super.initState();
+    isLoading = false;
+    isFailed = false;
     fname = FocusNode();
     lname = FocusNode();
     username = FocusNode();
@@ -34,7 +39,6 @@ class _SignupPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     fname!.dispose();
     lname!.dispose();
@@ -136,10 +140,14 @@ class _SignupPageState extends State<SignUpPage> {
 
   Widget _formBody(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-      if (state.isAuthenticated) {
-        Navigator.pushNamed(context, loginpageroute);
-      } else {
-        print("No Men");
+      if (state.isRegistered) {
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          Navigator.pushReplacementNamed(context, loginpageroute);
+        });
+      } else if (state.isRegisterFailed) {
+        isFailed = true;
+      } else if (state.isRegistering) {
+        isLoading = true;
       }
       return Container(
           width: MediaQuery.of(context).size.width / 3,
@@ -156,12 +164,21 @@ class _SignupPageState extends State<SignUpPage> {
                 Container(
                   child: Text("SignUp In Etwork"),
                 ),
+                Container(
+                  child: isLoading
+                      ? Text("Loading ....")
+                      : isFailed
+                          ? Text("SIgnup Failed !")
+                          : Text(""),
+                ),
                 CustomRoundFormField(
                   isObscure: false,
                   fnode: fname,
                   nextFocus: lname,
                   onSaved: (value) {
-                    this._user['firstname'] = value;
+                    setState(() {
+                      this._user['firstname'] = value.toString();
+                    });
                   },
                   hintText: "First Name",
                   prefixIconData: Icons.person,
@@ -171,7 +188,9 @@ class _SignupPageState extends State<SignUpPage> {
                   fnode: lname,
                   nextFocus: username,
                   onSaved: (value) {
-                    this._user['lastname'] = value;
+                    setState(() {
+                      this._user['lastname'] = value.toString();
+                    });
                   },
                   hintText: "Last Name",
                   prefixIconData: Icons.person,
@@ -181,7 +200,9 @@ class _SignupPageState extends State<SignUpPage> {
                     nextFocus: email,
                     fnode: username,
                     onSaved: (value) {
-                      this._user['username'] = value;
+                      setState(() {
+                        this._user['username'] = value.toString();
+                      });
                     },
                     hintText: "Username",
                     prefixIconData: Icons.person),
@@ -190,25 +211,44 @@ class _SignupPageState extends State<SignUpPage> {
                     nextFocus: phonenumber,
                     fnode: email,
                     onSaved: (value) {
-                      this._user['email'] = value;
+                      setState(() {
+                        this._user['email'] = value.toString();
+                      });
                     },
-                    hintText: "@example.com",
+                    hintText: "example@example.com",
                     prefixIconData: Icons.email),
                 CustomRoundFormField(
                     isObscure: false,
                     nextFocus: password,
                     fnode: phonenumber,
                     onSaved: (value) {
-                      this._user['phonenumber'] = value;
+                      setState(() {
+                        this._user['phonenumber'] = value.toString();
+                      });
                     },
                     hintText: "Phone Number",
                     prefixIconData: Icons.phone),
+                CustomDropDownList(
+                  onChanged: (value) {
+                    setState(() {
+                      if (value.toString() == "Freelancer") {
+                        this._user['userType'] = "freelancer";
+                      } else if (value.toString() == "Customer") {
+                        this._user['userType'] = 'customer';
+                      } else {
+                        this._user['userType'] = 'company';
+                      }
+                    });
+                  },
+                ),
                 CustomRoundFormField(
-                  isObscure: true,
+                  isObscure: false,
                   nextFocus: null,
                   fnode: password,
                   onSaved: (value) {
-                    this._user['password'] = value;
+                    setState(() {
+                      this._user['password'] = value;
+                    });
                   },
                   hintText: "Password",
                   prefixIconData: Icons.lock,
@@ -216,21 +256,22 @@ class _SignupPageState extends State<SignUpPage> {
                 ),
                 CustomRoundButton(
                   onPressed: () {
+                    print("Am Pressed");
                     final form = _formKey.currentState;
-
                     if (form!.validate()) {
                       form.save();
-                      // print(this._user);
                       final AuthEvent event = AuthRegister(User(
                           userName: this._user["username"],
                           firstname: this._user["firstname"],
                           lastname: this._user["lastname"],
                           email: this._user["email"],
-                          userType: "freelancer",
+                          userType: this._user["userType"],
                           phonenumber: this._user["phonenumber"],
                           password: this._user["password"]));
+                      print(this._user);
                       BlocProvider.of<AuthBloc>(context).add(event);
                     }
+                    print(this._user);
                   },
                   title: "SignUp",
                   checktitle: "signup",
@@ -259,7 +300,7 @@ class _SignupPageState extends State<SignUpPage> {
                 ),
                 CustomRoundButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/login');
+                      Navigator.pushNamed(context, loginpageroute);
                     },
                     title: "LogIn",
                     checktitle: "secondary")
