@@ -46,10 +46,6 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
         img: req.body.img,
         roles: req.body.roles,
     };
-<<<<<<< HEAD
-    console.log(user.userType);
-=======
->>>>>>> dev-auth-broad
     if (
         user.userType === "customer" ||
         user.userType === "freelancer" ||

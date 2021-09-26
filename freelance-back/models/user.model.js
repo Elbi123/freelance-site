@@ -69,13 +69,8 @@ const userSchema = new mongoose.Schema(
                 message: "Password doesn't match",
             },
         },
-<<<<<<< HEAD
-        // may be you should take this one to respective freelancer and customer model
-        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
-=======
         passwordResetToken: String,
         passwordResetExpires: Date,
->>>>>>> dev-auth-broad
         roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
         customer: {
             type: mongoose.Schema.Types.ObjectId,
