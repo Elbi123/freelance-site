@@ -1,16 +1,13 @@
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const User = require("./../models/user.model");
-const Freelancer = require("../models/freelancer.model");
-const Customer = require("../models/customer.model");
-const Job = require("../models/job.model");
-const Skill = require("../models/skill.model");
-const Experience = require("../models/experience.model");
-const Language = require("../models/language.model");
 const Role = require("./../models/role.model");
 const BadRequestError = require("./../utils/error");
-const Image = require("../models/image.model");
 const catchAsync = require("./../utils/catchAsync");
+const sendEmail = require("../utils/handlePasswordResetEmail");
 
 exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
+    let username = req.body.userName;
     if (req.body.roles) {
         for (let i = 0; i < req.body.roles.length; i++) {
             const role = await Role.findOne({ name: req.body.roles[i] });
@@ -26,10 +23,18 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
     } else {
         req.body.roles = ["user", req.body.userType];
     }
+    if (username) {
+        const user = await User.findOne({ userName: req.body.userName });
+        if (user) {
+            return next(new BadRequestError("Username has been taken", 401));
+        }
+    } else {
+        username = req.body.email.split("@")[0];
+    }
     let user = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
-        userName: req.body.userName,
+        userName: username,
         userType: req.body.userType,
         companyName: req.body.companyName,
         companyPhone: req.body.companyPhone,
@@ -41,7 +46,10 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
         img: req.body.img,
         roles: req.body.roles,
     };
+<<<<<<< HEAD
     console.log(user.userType);
+=======
+>>>>>>> dev-auth-broad
     if (
         user.userType === "customer" ||
         user.userType === "freelancer" ||
@@ -58,6 +66,14 @@ exports.checkIfRoleExists = catchAsync(async (req, res, next) => {
     next();
 });
 
+// generate token
+const signToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+};
+
+// user signup
 exports.signup = catchAsync(async (req, res, next) => {
     let body = { ...req.body };
     delete body.roles;
@@ -80,218 +96,132 @@ exports.signup = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.getUsers = catchAsync(async (req, res, next) => {
-    await User.find({})
-        .populate({
-            path: "customer",
-            select: "-user -_id -__v",
-            populate: {
-                path: "jobs",
-                select: "-_id -__v",
-                populate: {
-                    path: "skills experiences languages",
-                    select: "-_id name",
-                },
-            },
-        })
-        .populate({
-            path: "freelancer",
-            populate: {
-                path: "skills experiences languages",
-                select: "name -_id",
-            },
-            select: "-_id -__v",
-        })
-        .select("-_id -__v -password")
-        .exec(function (err, users) {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-            if (users) {
-                res.json({
-                    total: users.length,
-                    users,
-                });
-            }
-        });
-});
+// login users
+exports.login = catchAsync(async (req, res, next) => {
+    // 1- accept the credentials
+    const { emailOrUsername, password } = req.body;
 
-exports.getUser = catchAsync(async (req, res, next) => {
-    const user = await User.findOne({ userName: req.params.username })
-        .populate("user")
-        .populate({
-            path: "customer freelancer user",
-            select: "-user -_id -__v",
-            populate: {
-                path: "skills experiences jobs languages",
-                select: "name -_id",
-            },
-        })
-        .select("-_id -__v -password");
-    if (!user) {
-        next(new BadRequestError("User not found", 404));
+    // 2- check if empty
+    if (!emailOrUsername || !password) {
+        return next(
+            new BadRequestError("Please provide email and password", 400)
+        );
     }
 
-    let image = await Image.findOne({ _id: user.freelancer.image }).select(
-        "path"
-    );
-    if (!image) {
-        return next(new BadRequestError("Image Not Found", 404));
+    // 3- check if user exists and if password is correct
+    const user = await User.findOne({
+        $or: [{ email: emailOrUsername }, { userName: emailOrUsername }],
+    }).select("+password");
+
+    if (!user || !(await user.correctPassword(password, user.password))) {
+        if (emailOrUsername.includes("@")) {
+            return next(
+                new BadRequestError("Incorrect email or password", 401)
+            );
+        } else {
+            return next(
+                new BadRequestError("Incorrect username or password", 401)
+            );
+        }
     }
 
-    let img = image.path.split("/")[1];
-    image.path = img;
+    // 4- generate token
+    const token = signToken(user._id);
 
-    user.freelancer.image = image;
-
-    res.status(200).json({
-        user,
-    });
-});
-
-exports.updateUserAccount = catchAsync(async (req, res, next) => {
-    const { firstName, lastName, email, phoneNumber } = req.body;
-    const username = req.params.username;
-    const user = await User.findOne({ userName: username });
-    if (!user) {
-        return next(new BadRequestError("User Not Found", 404));
-    }
-    let userName = email.split("@")[0];
-    const newData = { firstName, lastName, email, phoneNumber, userName };
-    await User.updateOne({ _id: user._id }, newData);
     res.status(200).json({
         status: "success",
-        message: "Account Successfully Updated",
+        token,
     });
 });
 
-exports.deleteUserAccount = catchAsync(async (req, res, next) => {
-    const username = req.params.username;
-    const user = await User.findOne({ userName: username });
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+    const { email } = req.body;
+    if (!email) {
+        return next(new BadRequestError("Please provide email", 400));
+    }
+    // 1- Get user based on POST email
+    const user = await User.findOne({ email });
     if (!user) {
-        return next(new BadRequestError("User Not Found", 404));
+        return next(new BadRequestError("No user with that email", 404));
     }
-    if (user.userType === "freelancer") {
-        const freelancer = await Freelancer.findOne({
-            _id: user.freelancer,
-        });
-        if (!freelancer) {
-            await user.remove((err) => {
-                if (err) {
-                    return next(
-                        new BadRequestError("Internal Server Error", 500)
-                    );
-                }
-            });
-            return res.status(200).json({
-                status: "success",
-                message: "Your Account Deleted Successfully",
-            });
-        }
-        freelancer.skills.forEach(async (id) => {
-            await Skill.updateOne(
-                {
-                    _id: id,
-                },
-                { $pull: { freelancers: freelancer._id } }
-            );
-        });
-        freelancer.experiences.forEach(async (id) => {
-            await Experience.updateOne(
-                { _id: id },
-                { $pull: { freelancers: freelancer._id } }
-            );
-        });
-        freelancer.languages.forEach(async (id) => {
-            await Language.updateOne(
-                { _id: id },
-                { $pull: { freelancers: freelancer._id } }
-            );
-        });
-        // remove freelancer profile
-        await freelancer.remove((err) => {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-        });
-        // remove the user
-        await user.remove((err) => {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-            res.status(200).json({
-                status: "success",
-                message: "Your Account Deleted Permanently",
-            });
-        });
-    } else if (user.userType === "customer" || user.userType === "company") {
-        const customer = await Customer.findOne({ _id: user.customer });
-        if (!customer) {
-            await user.remove((err) => {
-                if (err) {
-                    return next(
-                        new BadRequestError("Internal Server Error", 500)
-                    );
-                }
-            });
-            return res.status(200).json({
-                status: "success",
-                message: "Your Account Deleted Successfully",
-            });
-        }
 
-        customer.jobs.forEach(async (id) => {
-            const job = await Job.findOne({ _id: id });
-            if (!job) {
-                return next(new BadRequestError("Job Not Found", 404));
-            }
+    // 2- Generate random reset token
+    const resetToken = user.createPasswordResetToken();
 
-            job.skills.forEach(async (id) => {
-                await Skill.updateOne(
-                    { _id: id },
-                    { $pull: { jobs: job._id } }
-                );
-            });
-            job.experiences.forEach(async (id) => {
-                await Experience.updateOne(
-                    { _id: id },
-                    { $pull: { jobs: job._id } }
-                );
-            });
-            job.languages.forEach(async (id) => {
-                await Language.updateOne(
-                    { _id: id },
-                    { $pull: { jobs: job._id } }
-                );
-            });
+    await user.save({ validateBeforeSave: false });
 
-            // remove each job
-            await job.remove((err) => {
-                if (err) {
-                    return next(
-                        new BadRequestError("Internal Server Error", 500)
-                    );
-                }
-            });
-        });
+    // 3- Sent the token via email to user
+    const resetUrl = `${req.protocol}://${req.get(
+        "host"
+    )}/auth/reset-password/${resetToken}`;
 
-        // remove customer profile
-        await customer.remove((err) => {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-        });
+    const message = `Forgot your password? Follow ${resetUrl} this link to reset your password.\n If you didn't forget your password, please ignore this email`;
 
-        // remove the user then
-        await user.remove((err) => {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-        });
+    const emailDetails = {
+        email: user.email,
+        subject: "Password Reset Notification[VALID FOR 10 MINUTES]",
+        text: message,
+    };
 
-        res.status(200).json({
-            status: "success",
-            message: "Your Account Deleted Successfully",
-        });
+    try {
+        await sendEmail.sendPasswordResetEmail(emailDetails);
+    } catch (err) {
+        user.passwordResetToken = undefined;
+        user.passwordResetToken = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(
+            new BadRequestError(
+                "There was an error sending the email. Try again later",
+                500
+            )
+        );
     }
+
+    res.status(200).json({
+        status: "success",
+        messsag: "Password reset email has been sent",
+    });
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+    const password = req.body.password;
+    const passwordConfirm = req.body.passwordConfirm;
+    if (!password || !passwordConfirm) {
+        return next(new BadRequestError("Please fill the fields", 400));
+    }
+    if (password !== passwordConfirm) {
+        return next(new BadRequestError("Password should match", 400));
+    }
+    // 1- get user based on token
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(req.params.token)
+        .digest("hex");
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetToken: { $gt: Date.now() },
+    });
+    // 2- if the token has not expired and if there is user, set the new password
+    if (!user) {
+        return next(
+            new BadRequestError("Token is invalid or has expired", 400)
+        );
+    }
+
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
+
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save({ validateBeforeSave: false });
+    // 3- update changePassswordAt property for the user
+    // 4- log the user in, send JWT
+    const token = signToken(user._id);
+
+    res.status(200).json({
+        status: "success",
+        token,
+    });
 });
