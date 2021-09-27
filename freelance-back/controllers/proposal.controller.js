@@ -3,6 +3,7 @@ const User = require("../models/user.model");
 const Job = require("../models/job.model");
 const Proposal = require("../models/proposal.model");
 const Freelancer = require("../models/freelancer.model");
+const Customer = require("../models/customer.model");
 const catchAsync = require("../utils/catchAsync");
 const sendEmail = require("../utils/handleSendingEmail");
 const sendEmailToFreelancer = require("../utils/handleFreelancerEmail");
@@ -50,7 +51,7 @@ exports.getAllProposals = async (req, res) => {
     });
 };
 
-exports.getUserProposal = catchAsync(async (req, res, next) => {
+exports.getUserProposals = catchAsync(async (req, res, next) => {
     const { status } = req.query;
     const { username } = req.params;
 
@@ -127,6 +128,265 @@ exports.getUserProposal = catchAsync(async (req, res, next) => {
             status: "sucess",
             proposals,
         });
+    }
+});
+
+exports.getProposalForSingleJob = catchAsync(async (req, res, next) => {
+    const { username, slug } = req.params;
+    const { status } = req.query;
+
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    const job = await Job.findOne({ slug });
+    if (!job) {
+        return next(new BadRequestError("Job Not Found", 404));
+    }
+
+    if (user.customer) {
+        const customer = await Customer.findOne({ _id: user.customer });
+        if (!customer) {
+            return next(
+                new BadRequestError("Please32 fill profile first", 403)
+            );
+        }
+        if (customer.jobs.includes(job._id)) {
+            const jobProposals = await Proposal.find({
+                _id: { $in: job.proposals },
+            })
+                .populate({
+                    path: "freelancer",
+                    populate: {
+                        path: "user skills experiences languages",
+                    },
+                })
+                .populate({
+                    path: "job",
+                    populate: {
+                        path: "skills experiences languages",
+                        select: "name",
+                    },
+                    select: "-proposals -slug -__v",
+                });
+            const filteredJobProposals = jobProposals.filter((jobProposal) => {
+                if (status) {
+                    return jobProposal.status === status;
+                } else {
+                    return true;
+                }
+            });
+
+            const jobProposalBaseOnStatus = {};
+
+            const proposalKeys = [
+                "jobTitle",
+                "jobDescription",
+                "jobBudget",
+                "freelancerFirstName",
+                "freelancerLastName",
+                "paymentForJob",
+                "finishingTime",
+                "coverLetter",
+            ];
+            if (status === "submitted" || status === "declined" || !status) {
+                filteredJobProposals.forEach((proposal) => {
+                    const proposalValues = [
+                        proposal.job.title,
+                        proposal.job.description,
+                        proposal.job.budget,
+                        proposal.freelancer.user.firstName,
+                        proposal.freelancer.user.lastName,
+                        proposal.paymentForJob,
+                        proposal.finishingTime,
+                        proposal.coverLetter,
+                    ];
+                    for (let i = 0; i < proposalKeys.length; i++) {
+                        jobProposalBaseOnStatus[proposalKeys[i]] =
+                            proposalValues[i];
+                    }
+                });
+                res.status(200).json({
+                    status: "success",
+                    jobProposalBaseOnStatus,
+                });
+            }
+            if (status === "under-review") {
+                proposalKeys.push("skills");
+                proposalKeys.push("languages");
+                proposalKeys.push("experiences");
+                proposalKeys.push("educationalBackground");
+
+                filteredJobProposals.forEach((proposal) => {
+                    let freelancerSkills = [];
+                    let freelancerLangauges = [];
+                    let freelancerExperiences = [];
+                    let freelancerEducationalBackground = [];
+                    proposal.freelancer.skills.forEach((skill) => {
+                        freelancerSkills.push(skill.name);
+                    });
+                    proposal.freelancer.languages.forEach((language) => {
+                        freelancerLangauges.push(language.name);
+                    });
+                    proposal.freelancer.experiences.forEach((experience) => {
+                        freelancerExperiences.push(experience.name);
+                    });
+
+                    proposal.freelancer.educationalBackground.forEach(
+                        (experience) => {
+                            freelancerEducationalBackground.push(experience);
+                        }
+                    );
+
+                    const proposalValues = [
+                        proposal.job.title,
+                        proposal.job.description,
+                        proposal.job.budget,
+                        proposal.freelancer.user.firstName,
+                        proposal.freelancer.user.lastName,
+                        proposal.paymentForJob,
+                        proposal.finishingTime,
+                        proposal.coverLetter,
+                        freelancerSkills,
+                        freelancerLangauges,
+                        freelancerExperiences,
+                        freelancerEducationalBackground,
+                    ];
+                    for (let i = 0; i < proposalKeys.length; i++) {
+                        jobProposalBaseOnStatus[proposalKeys[i]] =
+                            proposalValues[i];
+                    }
+                });
+                res.status(200).json({
+                    status: "success",
+                    jobProposalBaseOnStatus,
+                });
+            }
+            if (status === "accepted") {
+                proposalKeys.push("skills");
+                proposalKeys.push("languages");
+                proposalKeys.push("experiences");
+                proposalKeys.push("educationalBackground");
+                proposalKeys.push("email");
+                proposalKeys.push("phoneNumber");
+
+                filteredJobProposals.forEach((proposal) => {
+                    let freelancerSkills = [];
+                    let freelancerLangauges = [];
+                    let freelancerExperiences = [];
+                    let freelancerEducationalBackground = [];
+                    proposal.freelancer.skills.forEach((skill) => {
+                        freelancerSkills.push(skill.name);
+                    });
+                    proposal.freelancer.languages.forEach((language) => {
+                        freelancerLangauges.push(language.name);
+                    });
+                    proposal.freelancer.experiences.forEach((experience) => {
+                        freelancerExperiences.push(experience.name);
+                    });
+
+                    proposal.freelancer.educationalBackground.forEach(
+                        (experience) => {
+                            freelancerEducationalBackground.push(experience);
+                        }
+                    );
+
+                    const proposalValues = [
+                        proposal.job.title,
+                        proposal.job.description,
+                        proposal.job.budget,
+                        proposal.freelancer.user.firstName,
+                        proposal.freelancer.user.lastName,
+                        proposal.paymentForJob,
+                        proposal.finishingTime,
+                        proposal.coverLetter,
+                        freelancerSkills,
+                        freelancerLangauges,
+                        freelancerExperiences,
+                        freelancerEducationalBackground,
+                        proposal.freelancer.user.email,
+                        proposal.freelancer.user.phoneNumber,
+                    ];
+                    for (let i = 0; i < proposalKeys.length; i++) {
+                        jobProposalBaseOnStatus[proposalKeys[i]] =
+                            proposalValues[i];
+                    }
+                });
+                res.status(200).json({
+                    status: "success",
+                    jobProposalBaseOnStatus,
+                });
+            }
+            if (status === "approved") {
+                proposalKeys.push("skills");
+                proposalKeys.push("languages");
+                proposalKeys.push("experiences");
+                proposalKeys.push("educationalBackground");
+                proposalKeys.push("email");
+                proposalKeys.push("phoneNumber");
+                proposalKeys.push("summary");
+                proposalKeys.push("address");
+                proposalKeys.push("legalInformation");
+
+                filteredJobProposals.forEach((proposal) => {
+                    let freelancerSkills = [];
+                    let freelancerLangauges = [];
+                    let freelancerExperiences = [];
+                    let freelancerEducationalBackground = [];
+                    let freelancerLegalInfo = [];
+                    proposal.freelancer.skills.forEach((skill) => {
+                        freelancerSkills.push(skill.name);
+                    });
+                    proposal.freelancer.languages.forEach((language) => {
+                        freelancerLangauges.push(language.name);
+                    });
+                    proposal.freelancer.experiences.forEach((experience) => {
+                        freelancerExperiences.push(experience.name);
+                    });
+
+                    proposal.freelancer.educationalBackground.forEach(
+                        (experience) => {
+                            freelancerEducationalBackground.push(experience);
+                        }
+                    );
+                    proposal.freelancer.legalInformation.forEach(
+                        (legalInfo) => {
+                            freelancerLegalInfo.push(legalInfo);
+                        }
+                    );
+
+                    const proposalValues = [
+                        proposal.job.title,
+                        proposal.job.description,
+                        proposal.job.budget,
+                        proposal.freelancer.user.firstName,
+                        proposal.freelancer.user.lastName,
+                        proposal.paymentForJob,
+                        proposal.finishingTime,
+                        proposal.coverLetter,
+                        freelancerSkills,
+                        freelancerLangauges,
+                        freelancerExperiences,
+                        freelancerEducationalBackground,
+                        proposal.freelancer.user.email,
+                        proposal.freelancer.user.phoneNumber,
+                        proposal.freelancer.summary,
+                        proposal.freelancer.address,
+                        freelancerLegalInfo,
+                    ];
+                    for (let i = 0; i < proposalKeys.length; i++) {
+                        jobProposalBaseOnStatus[proposalKeys[i]] =
+                            proposalValues[i];
+                    }
+                });
+                res.status(200).json({
+                    status: "success",
+                    jobProposalBaseOnStatus,
+                });
+            }
+        } else {
+            return next(new BadRequestError("Job Not Found", 404));
+        }
     }
 });
 
@@ -323,7 +583,6 @@ exports.changeProposalStatus = catchAsync(async (req, res, next) => {
 });
 
 const handleJobAccept = async (status, proposal, id, res, next) => {
-    console.log(status);
     if (status === "accepted" && proposal.status === "submitted") {
         await Proposal.updateOne({ _id: id }, { status }, (err) => {
             if (err) {
