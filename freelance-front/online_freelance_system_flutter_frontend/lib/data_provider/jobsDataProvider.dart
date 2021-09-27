@@ -10,6 +10,7 @@ class JobsDataProvider {
   JobsDataProvider({required this.httpClient});
   Future<List<Job>> getAllJobs() async {
     final url = Uri.parse(apiUrl + '/jobs');
+    print(url);
     try {
       final response = await httpClient.get(url);
       print(response.statusCode);

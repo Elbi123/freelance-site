@@ -54,7 +54,7 @@ class _CustomRoundFormFieldState extends State<CustomRoundFormField> {
       child: TextFormField(
         obscureText: this.widget.isObscure,
         focusNode: this.widget.fnode,
-        onSaved: this.widget.onSaved,
+        onChanged: this.widget.onSaved,
         onFieldSubmitted: (term) {
           this.widget.fnode!.unfocus();
           FocusScope.of(context).requestFocus(this.widget.nextFocus);

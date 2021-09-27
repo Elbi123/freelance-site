@@ -5,11 +5,13 @@ import 'package:online_freelance_system_flutter_frontend/screens/feeds/feedsItem
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 
 class FeedsItemCard extends StatefulWidget {
-  final dynamic jobs;
+  final Job jobs;
   final double? width;
+  final int index;
 
   const FeedsItemCard({
     Key? key,
+    required this.index,
     required this.jobs,
     this.width,
   }) : super(key: key);
@@ -44,126 +46,133 @@ class _FeedsItemCardState extends State<FeedsItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: widget.width,
-      // height: 270,
-      margin: EdgeInsets.all(10),
-      padding: EdgeInsets.all(10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: EdgeInsets.only(bottom: 25),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    print(widget.jobs);
+    return InkWell(
+      onTap: () {
+        print(widget.jobs.description);
+        showDialog(
+            context: context,
+            builder: (context) {
+              return FeedsItemDetail(
+                jobs: widget.jobs,
+              );
+            });
+      },
+      child: Container(
+        width: widget.width,
+        // height: 270,
+        margin: EdgeInsets.all(10),
+        padding: EdgeInsets.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(bottom: 25),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    onTap: () {},
+                    child: RichText(
+                        text: TextSpan(
+                      text: widget.jobs.title,
+                      style: feedLinksTextStyle.copyWith(
+                          fontWeight: FontWeight.w900, fontSize: 18),
+                    )),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (like == true) {
+                                like = false;
+                              } else {
+                                like = true;
+                              }
+                            });
+                          },
+                          icon: Icon(
+                            like == true
+                                ? AntIcons.like
+                                : AntIcons.like_outline,
+                            color: kPrimaryColor,
+                          )),
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (favorite == true) {
+                                favorite = false;
+                              } else {
+                                favorite = true;
+                              }
+                            });
+                          },
+                          icon: Icon(
+                            favorite == true
+                                ? AntIcons.heart
+                                : AntIcons.heart_outline,
+                            color: kPrimaryColor,
+                          ))
+                    ],
+                  )
+                ],
+              ),
+            ),
+            Text(
+              "Job Type :${widget.jobs.type}",
+              style: blackboldMediumTextStyle,
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 10),
+              child: RichText(
+                  text: TextSpan(
+                      style: blacksemiboldMediumTextStyle,
+                      text: flag
+                          ? ("$firstHalf ...")
+                          : ("$firstHalf  $secondHalf"))),
+            ),
+            InkWell(
+              child: new Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  new Text(
+                    flag ? "show more" : "show less",
+                    style: new TextStyle(color: Colors.blue),
+                  ),
+                ],
+              ),
+              onTap: () {
+                setState(() {
+                  flag = !flag;
+                });
+              },
+            ),
+            Row(
               children: [
-                InkWell(
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return FeedsItemDetail(
-                            jobs: widget.jobs,
-                          );
-                        });
-                  },
-                  child: RichText(
-                      text: TextSpan(
-                    text: widget.jobs.title,
-                    style: feedLinksTextStyle.copyWith(
-                        fontWeight: FontWeight.w900, fontSize: 18),
-                  )),
+                Text(
+                  "Proposals  :$submittedProposals",
+                  style: boldbluredMediumTextStyle,
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          setState(() {
-                            if (like == true) {
-                              like = false;
-                            } else {
-                              like = true;
-                            }
-                          });
-                        },
-                        icon: Icon(
-                          like == true ? AntIcons.like : AntIcons.like_outline,
-                          color: kPrimaryColor,
-                        )),
-                    IconButton(
-                        onPressed: () {
-                          setState(() {
-                            if (favorite == true) {
-                              favorite = false;
-                            } else {
-                              favorite = true;
-                            }
-                          });
-                        },
-                        icon: Icon(
-                          favorite == true
-                              ? AntIcons.heart
-                              : AntIcons.heart_outline,
-                          color: kPrimaryColor,
-                        ))
-                  ],
-                )
+                SizedBox(
+                  width: 20,
+                ),
+                Text("Number Of Freelace Needed :$numberOfFreelancer")
               ],
             ),
-          ),
-          Text(
-            "Job Type :${widget.jobs.type}",
-            style: blackboldMediumTextStyle,
-          ),
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 10),
-            child: RichText(
-                text: TextSpan(
-                    style: blacksemiboldMediumTextStyle,
-                    text: flag
-                        ? ("$firstHalf ...")
-                        : ("$firstHalf  $secondHalf"))),
-          ),
-          InkWell(
-            child: new Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                new Text(
-                  flag ? "show more" : "show less",
-                  style: new TextStyle(color: Colors.blue),
+            Row(
+              children: [
+                Text("Location  :${widget.jobs.address}"),
+                SizedBox(
+                  width: 20,
                 ),
+                Text("Proffesionality :$professionality")
               ],
             ),
-            onTap: () {
-              setState(() {
-                flag = !flag;
-              });
-            },
-          ),
-          Row(
-            children: [
-              Text(
-                "Proposals  :$submittedProposals",
-                style: boldbluredMediumTextStyle,
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Text("Number Of Freelace Needed :$numberOfFreelancer")
-            ],
-          ),
-          Row(
-            children: [
-              Text("Location  :${widget.jobs.address}"),
-              SizedBox(
-                width: 20,
-              ),
-              Text("Proffesionality :$professionality")
-            ],
-          ),
-          Divider()
-        ],
+            Divider()
+          ],
+        ),
       ),
     );
   }

@@ -162,12 +162,13 @@ class _FeedsState extends State<FeedsPage> {
                       style: boldbluredMediumTextStyle.copyWith(fontSize: 15),
                     ));
                   } else {
+                    // print(jobs.length);
                     return ListView.builder(
                         physics: NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: jobs.length,
                         itemBuilder: (context, index) {
-                          return FeedsItemCard(jobs: jobs[index]);
+                          return FeedsItemCard(jobs: jobs[index], index: index);
                         });
                   }
                 }

@@ -5,14 +5,20 @@ class AuthState {
   final bool isAuthenticated;
   final bool isAuthenticating;
   final bool isFailed;
+  final bool isRegistered;
+  final bool isRegistering;
+  final bool isRegisterFailed;
   final User? user;
   final String? email;
   final String? password;
 
   AuthState(
-      {required this.isAuthenticated,
+      {this.isAuthenticated = false,
       this.isAuthenticating = false,
       this.isFailed = false,
+      this.isRegistered = false,
+      this.isRegistering = false,
+      this.isRegisterFailed = false,
       this.user,
       this.email,
       this.password});
@@ -27,8 +33,18 @@ class AuthState {
   factory AuthState.authenticated() {
     return AuthState(isAuthenticated: true, isAuthenticating: false);
   }
-
   factory AuthState.authenticationFailed() {
     return AuthState(isAuthenticated: false, isFailed: true);
+  }
+
+  factory AuthState.registering() {
+    return AuthState(isRegistered: false, isRegistering: true);
+  }
+  factory AuthState.registered() {
+    return AuthState(isRegistered: true, isRegistering: false);
+  }
+
+  factory AuthState.registerFailed() {
+    return AuthState(isRegistered: false, isRegisterFailed: true);
   }
 }
