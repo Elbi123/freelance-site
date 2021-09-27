@@ -11,9 +11,14 @@ const APIFeatures = require("../utils/apiFeatures");
 
 // for super-admin
 exports.getAllTickets = catchAsync(async (req, res) => {
-    console.log(req.query);
-    const features = new APIFeatures(Ticket.find(), req.query).filter().sort();
+    const features = new APIFeatures(Ticket.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
     const tickets = await features.query;
+
     res.status(200).json({
         status: "success",
         tickets,

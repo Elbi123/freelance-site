@@ -9,41 +9,45 @@ const Language = require("../models/language.model");
 const Image = require("../models/image.model");
 const BadRequestError = require("./../utils/error");
 const catchAsync = require("./../utils/catchAsync");
+const APIFeatures = require("../utils/apiFeatures");
 
 exports.getUsers = catchAsync(async (req, res, next) => {
-    await User.find({})
-        .populate({
-            path: "customer",
-            select: "-user -_id -__v",
-            populate: {
-                path: "jobs",
-                select: "-_id -__v",
+    const features = new APIFeatures(
+        User.find({})
+            .populate({
+                path: "customer",
+                select: "-user -_id -__v",
+                populate: {
+                    path: "jobs",
+                    select: "-_id -__v",
+                    populate: {
+                        path: "skills experiences languages",
+                        select: "-_id name",
+                    },
+                },
+            })
+            .populate({
+                path: "freelancer",
                 populate: {
                     path: "skills experiences languages",
-                    select: "-_id name",
+                    select: "name -_id",
                 },
-            },
-        })
-        .populate({
-            path: "freelancer",
-            populate: {
-                path: "skills experiences languages",
-                select: "name -_id",
-            },
-            select: "-_id -__v",
-        })
-        .select("-_id -__v -password")
-        .exec(function (err, users) {
-            if (err) {
-                return next(new BadRequestError("Internal Server Error", 500));
-            }
-            if (users) {
-                res.json({
-                    total: users.length,
-                    users,
-                });
-            }
-        });
+                select: "-_id -__v",
+            })
+            .select("-_id -__v -password"),
+        req.query
+    )
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const users = await features.query;
+
+    res.json({
+        total: users.length,
+        users,
+    });
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {

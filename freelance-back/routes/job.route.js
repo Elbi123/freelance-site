@@ -4,6 +4,7 @@ const inputValidation = require("../middleware/inputValidation.middleware");
 const router = express.Router();
 
 router.get("/", jobController.getAllJobs);
+router.get("/search", jobController.searchJob);
 router.get("/skills", jobController.getSkills);
 router.get("/experiences", jobController.getExperiences);
 
