@@ -60,6 +60,7 @@ app.use("/", freelancerRouter);
 app.use("/auth", limiter, authRouter);
 app.use("/jobs", limiter2, jobRouter);
 app.use("/customers", jobRouter);
+app.use("/freelancers", jobRouter);
 app.use("/potential", customerRouter);
 app.use("/potential", freelancerRouter);
 app.use("/", proposalRouter);
