@@ -20,7 +20,13 @@ const proposalSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: {
-            values: ["submitted", "under-review", "accepted", "declined"],
+            values: [
+                "submitted",
+                "under-review",
+                "accepted",
+                "approved",
+                "declined",
+            ],
             message: "{VALUE} is not supported",
         },
         // [difference between submitted and under-review]
