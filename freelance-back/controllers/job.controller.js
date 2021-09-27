@@ -3,6 +3,7 @@ const ObjectId = require("mongoose").Types.ObjectId;
 const Job = require("../models/job.model");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
+const Freelancer = require("../models/freelancer.model");
 const Skill = require("../models/skill.model");
 const Experience = require("../models/experience.model");
 const Language = require("../models/language.model");
@@ -163,24 +164,26 @@ exports.createJob = catchAsync(async (req, res, next) => {
     }
 });
 
-exports.getCustomerJob = catchAsync(async (req, res) => {
+exports.getCustomerJob = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ userName: req.params.userName });
     if (!user) {
         return next(new BadRequestError("User Not Found", 404));
     }
-    const customer = await Customer.findOne({ _id: user.customer }).populate(
-        "user jobs"
-    );
+    const customer = await Customer.findOne({ _id: user.customer }).populate({
+        path: "jobs",
+        populate: { path: "skills experiences languages", select: "name" },
+        select: "-proposals -__v -slug -customer",
+    });
     if (!customer) {
         return next(new BadRequestError("Customer Not Found", 404));
     }
     res.json({
-        customer,
+        jobs: customer.jobs,
     });
 });
 
 exports.updateJob = catchAsync(async (req, res, next) => {
-    const id = req.params.id;
+    const { username, id } = req.params;
     const {
         title,
         description,
@@ -196,54 +199,85 @@ exports.updateJob = catchAsync(async (req, res, next) => {
         return next(new BadRequestError("Job Not Found", 404));
     }
 
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+
+    if (user.userType === "customer" || user.userType === "client") {
+        const customer = await Customer.findOne({ _id: user.customer });
+        if (!customer) {
+            return next(new BadRequestError("Fill your profile first", 401));
+        }
+        if (customer.jobs.includes(id)) {
+            const idSkill = await helpUpdate(
+                skillsNeeded,
+                Skill,
+                job,
+                "skills",
+                "job"
+            );
+            const idExperience = await helpUpdate(
+                experienceLevel,
+                Experience,
+                job,
+                "experiences",
+                "job"
+            );
+            const idLanguage = await helpUpdate(
+                languages,
+                Language,
+                job,
+                "languages",
+                "job"
+            );
+
+            // string into ObjectId data-type
+            const mappedToSkills = idSkill.map((el) => {
+                return ObjectId(el);
+            });
+            const mappedToExperiences = idExperience.map((el) => {
+                return ObjectId(el);
+            });
+
+            const mappedToLangauge = idLanguage.map((el) => {
+                return ObjectId(el);
+            });
+
+            // filter;
+            const filter = { _id: id };
+            const update = {
+                title,
+                description,
+                address,
+                type,
+                budget,
+                skills: mappedToSkills,
+                experiences: mappedToExperiences,
+                languages: mappedToLangauge,
+            };
+            const updatedJob = await Job.findOneAndUpdate(filter, update, {
+                new: true,
+            });
+            res.status(200).json({
+                // replace this with message
+                updatedJob,
+            });
+        } else {
+            return next(
+                new BadRequestError("You have no job with that id", 401)
+            );
+        }
+    } else {
+        return next(
+            new BadRequestError(
+                "Action reserved for customer or client. Wanna register as customer or client?",
+                403
+            )
+        );
+    }
+
     // helpQuery(skillsNeeded, Skill, job);
-    const idSkill = await helpUpdate(skillsNeeded, Skill, job, "skills", "job");
-    const idExperience = await helpUpdate(
-        experienceLevel,
-        Experience,
-        job,
-        "experiences",
-        "job"
-    );
-    const idLanguage = await helpUpdate(
-        languages,
-        Language,
-        job,
-        "languages",
-        "job"
-    );
-
-    // string into ObjectId data-type
-    const mappedToSkills = idSkill.map((el) => {
-        return ObjectId(el);
-    });
-    const mappedToExperiences = idExperience.map((el) => {
-        return ObjectId(el);
-    });
-
-    const mappedToLangauge = idLanguage.map((el) => {
-        return ObjectId(el);
-    });
-
-    // filter;
-    const filter = { _id: id };
-    const update = {
-        title,
-        description,
-        address,
-        type,
-        budget,
-        skills: mappedToSkills,
-        experiences: mappedToExperiences,
-        languages: mappedToLangauge,
-    };
-    const updatedJob = await Job.findOneAndUpdate(filter, update, {
-        new: true,
-    });
-    res.status(200).json({
-        // replace this with message
-        updatedJob,
-    });
 });
 
 exports.getSkills = async (req, res) => {
@@ -265,7 +299,7 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
     if (!user) {
         return next(new BadRequestError("User Not Found", 404));
     }
-    if (user.userType === "customer") {
+    if (user.userType === "customer" || user.useType === "client") {
         const customer = await Customer.findOne({ _id: user.customer });
         if (!customer) {
             return next(new BadRequestError("Customor Not Found", 404));
@@ -322,6 +356,101 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
                 message: "Job Successfully Deleted",
             });
         });
+    } else {
+        return next(
+            new BadRequestError(
+                "Action reserved for customer or client. Wanna register as customer or client?",
+                403
+            )
+        );
+    }
+});
+
+exports.saveJobForFreelancer = catchAsync(async (req, res, next) => {
+    const { username, id } = req.params;
+    const job = await Job.findOne({ _id: id });
+    if (!job) {
+        return next(new BadRequestError("Job Not Found", 404));
+    }
+    const user = await User.findOne({ userName: username });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+
+    if (user.userType === "freelancer") {
+        const freelancer = await Freelancer.findOne({ _id: user.freelancer });
+        if (!freelancer) {
+            return next(new BadRequestError("Fill profile first", 401));
+        }
+
+        if (!freelancer.savedJobs.includes(id)) {
+            // freelancer.savedJobs.push(id);
+            await Freelancer.updateOne(
+                { _id: user.freelancer },
+                { $push: { savedJobs: id } }
+            );
+            res.status(200).json({
+                status: "success",
+                message: "You have added job",
+            });
+        } else {
+            return next(
+                new BadRequestError(
+                    "You have already added this job to saved jobs",
+                    401
+                )
+            );
+        }
+    } else {
+        return next(
+            new BadRequestError(
+                "Action reserved for freelancer. Wanna register as freelancer?",
+                403
+            )
+        );
+    }
+});
+
+exports.getSavedJobs = catchAsync(async (req, res, next) => {
+    const { userName } = req.params;
+    const user = await User.findOne({ userName });
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    if (user.userType === "freelancer") {
+        const freelancer = await Freelancer.findOne({ _id: user.freelancer });
+        if (!freelancer) {
+            return next(
+                new BadRequestError("Fill your profile information", 404)
+            );
+        }
+        const savedJobs = await Job.find({
+            _id: { $in: freelancer.savedJobs },
+        })
+            .populate({
+                path: "skills experiences languages",
+                select: "name",
+            })
+            .select("-proposals -__v -slug");
+        if (!savedJobs) {
+            res.status(200).json({
+                status: "successs",
+                message: "You have no saved jobs",
+            });
+        }
+        if (savedJobs.status === "open") {
+            res.status(200).json({
+                status: "success",
+                savedJobs,
+            });
+        }
+    } else {
+        return next(
+            new BadRequestError(
+                "Action reserved for freelancer. Wanna register as freelancer?",
+                403
+            )
+        );
     }
 });
 

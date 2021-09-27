@@ -43,6 +43,7 @@ const freelancerSchema = new mongoose.Schema(
             type: String,
             required: [true, "Available time required"],
         },
+        savedJobs: [{ type: mongoose.Schema.Types.ObjectId }],
         skills: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],
         experiences: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Experience" },
