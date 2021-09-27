@@ -38,6 +38,14 @@ const jobSchema = new Schema(
             },
             default: "fixed-price",
         },
+        experienceLevelJob: {
+            type: String,
+            enum: {
+                values: ["entry", "intermidiate", "advanced"],
+                message: "{VALUE} is not supported",
+            },
+            default: "entry",
+        },
         status: {
             type: String,
             enum: {
@@ -84,6 +92,9 @@ jobSchema.pre("save", async function (next) {
     });
     next();
 });
+
+jobSchema.index({ title: "text", description: "text" });
+
 const Job = mongoose.model("Job", jobSchema);
 
 module.exports = Job;

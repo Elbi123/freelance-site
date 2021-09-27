@@ -46,6 +46,8 @@ const proposalSchema = new mongoose.Schema({
     },
 });
 
+proposalSchema.index({ status: "text", coverLetter: "text" });
+
 const Proposal = mongoose.model("Proposal", proposalSchema);
 
 module.exports = Proposal;
