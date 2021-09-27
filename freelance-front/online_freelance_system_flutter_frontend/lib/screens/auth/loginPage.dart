@@ -10,10 +10,18 @@ import 'package:online_freelance_system_flutter_frontend/screens/widgets/customR
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _user = {};
-  LoginPage({Key? key}) : super(key: key);
+  static String errorText = "";
+  static IconData? warnIcon;
   static FormState _formState = FormState();
 
   @override
@@ -103,12 +111,13 @@ class LoginPage extends StatelessWidget {
 
   Widget _formBody(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+      print(state.isAuthenticated);
       if (state.isAuthenticated) {
-        if (state.user!.userType == "") {
-          Navigator.pushNamed(context, homepageroute);
-        }
-      } else {
-        print("No Men");
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          Navigator.pushReplacementNamed(context, homepageroute);
+        });
+      } else if (state.isFailed) {
+        // Navigator.pushNamed(context, loginpageroute);
       }
       return Container(
         width: MediaQuery.of(context).size.width / 3,
@@ -123,7 +132,22 @@ class LoginPage extends StatelessWidget {
             Container(
               child: Text(
                 "Login In Etwork",
-                style: greenNavButtonTextStyle,
+                style: greenNavButtonTextStyle.copyWith(color: kPrimaryColor),
+              ),
+            ),
+            Container(
+              child: Row(
+                children: [
+                  Icon(
+                    warnIcon,
+                    color: kSecondaryColor,
+                  ),
+                  Text(
+                    errorText,
+                    style: greenNavButtonTextStyle.copyWith(
+                        color: kSecondaryColor),
+                  ),
+                ],
               ),
             ),
             Form(
@@ -133,14 +157,20 @@ class LoginPage extends StatelessWidget {
                     CustomRoundFormField(
                         isObscure: false,
                         onSaved: (value) {
-                          this._user['email'] = value;
+                          setState(() {
+                            this._user['email'] = value.toString();
+                            print("Email = " + this._user['email']);
+                          });
                         },
                         hintText: "Email",
                         prefixIconData: Icons.person),
                     CustomRoundFormField(
-                      isObscure: true,
+                      isObscure: false,
                       onSaved: (value) {
-                        this._user['password'] = value;
+                        setState(() {
+                          this._user['password'] = value.toString();
+                          // print("Password = " + this._user['user']);
+                        });
                       },
                       hintText: "Password",
                       prefixIconData: Icons.lock,
@@ -150,15 +180,30 @@ class LoginPage extends StatelessWidget {
                     CustomRoundButton(
                       onPressed: () {
                         final form = _formKey.currentState;
+                        print(this._user['email']);
+                        if (this._user['email'] == null) {
+                          print("Email Null");
+                          setState(() {
+                            warnIcon = Icons.info;
+                            errorText = "Please Fill The Email Form";
+                          });
+                        } else if (this._user['password'] == null) {
+                          print("Password Null");
+                          setState(() {
+                            warnIcon = Icons.info;
 
-                        if (form!.validate()) {
-                          form.save();
-                          // print(this._user);
-                          final AuthEvent event = AuthLogin(
-                              this._user["email"], this._user["password"]);
-                          BlocProvider.of<AuthBloc>(context).add(event);
+                            errorText = "Please Fill The Password Form";
+                          });
+                        } else {
+                          if (form!.validate()) {
+                            form.save();
+                            print(this._user['email']);
+
+                            final AuthEvent event = AuthLogin(
+                                this._user["email"], this._user["password"]);
+                            BlocProvider.of<AuthBloc>(context).add(event);
+                          }
                         }
-                        Navigator.pushNamed(context, '/home');
                       },
                       title: "Login",
                       checktitle: "primary",

@@ -4,8 +4,11 @@ const proposalController = require("../controllers/proposal.controller");
 const router = express.Router();
 
 router.get("/proposals", proposalController.getAllProposals);
-router.get("/:username/proposals", proposalController.getUserProposal);
-router.post("/:username/job/:slug", proposalController.createProposal);
+router.get("/:username/proposals", proposalController.getUserProposals);
+router
+    .route("/:username/jobs/:slug/")
+    .get(proposalController.getProposalForSingleJob)
+    .post(proposalController.createProposal);
 router.patch(
     "/jobs/:slug/proposals/:id",
     proposalController.changeProposalStatus

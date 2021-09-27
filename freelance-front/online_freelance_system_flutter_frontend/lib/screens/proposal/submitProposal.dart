@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/proposalBloc/proposalBloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/proposalBloc/proposalEvent.dart';
 import 'package:online_freelance_system_flutter_frontend/models/jobs/Job.dart';
+import 'package:online_freelance_system_flutter_frontend/models/proposal.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/components/footer.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/components/navbar.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customDrawer.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/widgets/customRoundButton.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/constants.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/menuController.dart';
+import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 
 class SubmitProposalPage extends StatefulWidget {
   final Job feedsDetail;
-  const SubmitProposalPage({
+  SubmitProposalPage({
     Key? key,
     required this.feedsDetail,
   }) : super(key: key);
@@ -22,6 +27,8 @@ class SubmitProposalPage extends StatefulWidget {
 class _SubmitProposalState extends State<SubmitProposalPage> {
   MenuController _controller = Get.put(MenuController());
   String dropdownValue = 'One';
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, dynamic> _proposal = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,59 +61,63 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(5)),
             padding: EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  child: Text("Job Detail",
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    child: Text("Job Detail",
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold)),
+                  ),
+                  Divider(),
+                  Container(
+                    decoration: BoxDecoration(),
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.title}",
                       style:
-                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-                ),
-                Divider(),
-                Container(
-                  decoration: BoxDecoration(),
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.title}",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.description}",
-                    style: TextStyle(fontSize: 18),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.description}",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.type}",
-                    style: TextStyle(fontSize: 18),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.type}",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.customer.address.country} , ${widget.feedsDetail.customer.address.city}",
-                    style: TextStyle(fontSize: 18),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.customer.address.country} , ${widget.feedsDetail.customer.address.city}",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.languages}",
-                    style: TextStyle(fontSize: 18),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.languages}",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    "${widget.feedsDetail.createdAt}",
-                    style: TextStyle(fontSize: 18),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 15),
+                    child: Text(
+                      "${widget.feedsDetail.createdAt}",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Container(
@@ -171,6 +182,11 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                 TextField(
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
+                  onChanged: (value) {
+                    setState(() {
+                      this._proposal['coverletter'] = value.toString();
+                    });
+                  },
                   autofillHints: Iterable.empty(),
                   decoration: InputDecoration(
                       hintText: "Cover Letter",
@@ -178,18 +194,38 @@ class _SubmitProposalState extends State<SubmitProposalPage> {
                           borderRadius: BorderRadius.circular(5))),
                   minLines: 3,
                 ),
-                CustomRoundButton(
-                  onPressed: () {},
-                  title: "Attach File",
-                  checktitle: "blue",
-                  iconData: Icons.attach_file,
-                ),
                 Divider(),
                 Row(
                   children: [
                     CustomRoundButton(
-                        onPressed: () {},
-                        title: "Submit Proposal     ",
+                        onPressed: () {
+                          final form = _formKey.currentState;
+                          if (form!.validate()) {
+                            form.save();
+                            print(this._proposal['paymentFOrJob']);
+
+                            final ProposalEvent event = ProposalSubmit(
+                                Proposal(
+                                    paymentForJob: this
+                                        .widget
+                                        .feedsDetail
+                                        .budget
+                                        .toString(),
+                                    finishingTime:
+                                        this._proposal['finishingTime'],
+                                    coverletter: this._proposal['coverletter']),
+                                this.widget.feedsDetail.title,
+                                "kalebwesenyeleh");
+
+                            BlocProvider.of<ProposalBloc>(context).add(event);
+
+                            WidgetsBinding.instance!.addPostFrameCallback((_) {
+                              Navigator.pushReplacementNamed(
+                                  context, homepageroute);
+                            });
+                          }
+                        },
+                        title: "Submit Proposal",
                         checktitle: "secondary"),
                     SizedBox(
                       width: 20,
