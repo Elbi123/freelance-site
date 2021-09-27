@@ -11,49 +11,28 @@ const catchAsync = require("./../utils/catchAsync");
 const BadRequestError = require("./../utils/error");
 const helpQuery = require("../utils/helpQuery");
 const helpUpdate = require("../utils/helpUpdate");
+const APIFeatures = require("../utils/apiFeatures");
 
 exports.getAllJobs = catchAsync(async (req, res, next) => {
-    const queryObj = { ...req.query };
-    const excludedFields = ["page", "sort", "limit", "fields"];
-    excludedFields.forEach((el) => delete queryObj[el]);
-    let queryString = JSON.stringify(queryObj);
+    const features = new APIFeatures(
+        Job.find()
+            .populate(
+                "customer",
+                "-skills -isPaymentVerified -experiences -languages -jobs -legalInformation -user -createAt -_id -__v -updatedAt "
+            )
+            .populate({
+                path: "skills experiences languages",
+                select: "name -_id",
+            })
+            .select("-_id -__v -updatedAt"),
+        req.query
+    )
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
 
-    // ADVANCED FITERING[SHOULD BE ADDED MORE]
-    queryString = queryString.replace(
-        /\b(gte|gt|lte|lt)\b/g,
-        (match) => `$${match}`
-    );
-
-    let query = Job.find(JSON.parse(queryString))
-        .populate(
-            "customer",
-            "-skills -isPaymentVerified -experiences -languages -jobs -legalInformation -user -createAt -_id -__v -updatedAt "
-        )
-        .populate({ path: "skills experiences languages", select: "name -_id" })
-        .select("-_id -__v -updatedAt");
-
-    // SORTING GOES HERE
-    if (req.query.sort) {
-        let sortBy = req.query.sort.split(",").join(" ");
-        query = query.sort(sortBy);
-    } else {
-        query = query.sort("-createdAt");
-    }
-
-    // PAGINATION
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 50;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-        const numberOfJobs = await Job.countDocuments();
-        if (skip >= numberOfJobs)
-            next(new BadRequestError("Page doesn't exist", 404));
-    }
-
-    const jobs = await query;
+    const jobs = await features.query;
 
     res.status(200).json({
         total: jobs.length,
@@ -86,6 +65,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
         description,
         address,
         type,
+        experienceLevelJob,
         skillsNeeded,
         experienceLevel,
         budget,
@@ -107,6 +87,7 @@ exports.createJob = catchAsync(async (req, res, next) => {
             let constructJob = {
                 title,
                 description,
+                experienceLevelJob,
                 address,
                 type,
                 budget,
@@ -412,6 +393,8 @@ exports.saveJobForFreelancer = catchAsync(async (req, res, next) => {
 });
 
 exports.getSavedJobs = catchAsync(async (req, res, next) => {
+    console.log("called");
+
     const { userName } = req.params;
     const user = await User.findOne({ userName });
     if (!user) {
@@ -431,14 +414,14 @@ exports.getSavedJobs = catchAsync(async (req, res, next) => {
                 path: "skills experiences languages",
                 select: "name",
             })
-            .select("-proposals -__v -slug");
+            .select("-slug -customer -__v -proposals");
+
         if (!savedJobs) {
             res.status(200).json({
                 status: "successs",
                 message: "You have no saved jobs",
             });
-        }
-        if (savedJobs.status === "open") {
+        } else {
             res.status(200).json({
                 status: "success",
                 savedJobs,
