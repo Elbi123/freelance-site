@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart';
 import 'package:online_freelance_system_flutter_frontend/bloc/jobs_bloc/jobBloc.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/jobs_bloc/jobEvent.dart';
+import 'package:online_freelance_system_flutter_frontend/bloc/proposalBloc/proposalBloc.dart';
 import 'package:online_freelance_system_flutter_frontend/bloc_observer.dart';
 import 'package:online_freelance_system_flutter_frontend/data_provider/authDataProvider.dart';
 import 'package:online_freelance_system_flutter_frontend/data_provider/jobsDataProvider.dart';
+import 'package:online_freelance_system_flutter_frontend/data_provider/proposalDataProvider.dart';
 import 'package:online_freelance_system_flutter_frontend/repository/authRepo.dart';
 import 'package:online_freelance_system_flutter_frontend/repository/jobsRepo.dart';
+import 'package:online_freelance_system_flutter_frontend/repository/proposalRepo.dart';
 import 'package:online_freelance_system_flutter_frontend/screens/auth/loginPage.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routeNames.dart';
 import 'package:online_freelance_system_flutter_frontend/utils/routes.dart';
@@ -40,8 +44,12 @@ class MyApp extends StatelessWidget {
           BlocProvider<JobsBloc>(
               create: (BuildContext context) => JobsBloc(
                   jobsRepo: JobsRepo(
-                      jobsDataProvider:
-                          JobsDataProvider(httpClient: Client())))),
+                      jobsDataProvider: JobsDataProvider(httpClient: Client())))
+                ..add(JobsLoad())),
+          BlocProvider<ProposalBloc>(
+              create: (BuildContext context) => ProposalBloc(
+                  proposalRepo: ProposalRepo(
+                      proposalDataProvider: ProposalDataProvider(Client())))),
         ],
         child: MaterialApp(
             debugShowCheckedModeBanner: false,

@@ -8,6 +8,7 @@ import 'package:online_freelance_system_flutter_frontend/utils/routes.dart';
 
 class FeedsItemDetail extends StatefulWidget {
   final Job jobs;
+  // final String title, jobType, description, proposal;
 
   const FeedsItemDetail({Key? key, required this.jobs}) : super(key: key);
 
@@ -18,7 +19,7 @@ class FeedsItemDetail extends StatefulWidget {
 class _FeedsItemDetailState extends State<FeedsItemDetail> {
   @override
   Widget build(BuildContext context) {
-    print(widget.jobs.title);
+    print(widget.jobs.status);
     return SingleChildScrollView(
       child: Container(
         width: MediaQuery.of(context).size.width / 1.4,
@@ -69,7 +70,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                               fontWeight: FontWeight.w500),
                         ),
                         Text(
-                          " ${widget.jobs.type} ",
+                          widget.jobs.type,
                           style: TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w500),
                         ),
@@ -96,7 +97,7 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                             horizontal: 15.0, vertical: 8),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget.jobs.description}",
+                          text: widget.jobs.description,
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -126,9 +127,9 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         padding: const EdgeInsets.all(8.0),
                         child: RichText(
                             text: TextSpan(
-                          text: "${widget..jobs.status}",
+                          text: widget.jobs.status,
                           style: feedDetailTextStyle.copyWith(
-                              // fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w900,
                               fontSize: 15,
                               color: Colors.black),
                         )),
@@ -156,8 +157,8 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                         padding: const EdgeInsets.all(8.0),
                         child: RichText(
                             text: TextSpan(
-                          text:
-                              "${widget.jobs.customer.address.country} , ${widget.jobs.customer.address.city}",
+                          text: widget.jobs.customer.address.country +
+                              widget.jobs.customer.address.city,
                           style: feedDetailTextStyle.copyWith(
                               // fontWeight: FontWeight.w900,
                               fontSize: 15,
@@ -177,23 +178,19 @@ class _FeedsItemDetailState extends State<FeedsItemDetail> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        " Number Of Proposals : ",
+                        "Language: ",
                         style: feedDetailTextStyle.copyWith(
-                            // fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w900,
                             fontSize: 18,
                             color: kPrimaryColor),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: RichText(
-                            text: TextSpan(
-                          text: "${widget.jobs.languages}",
-                          style: feedDetailTextStyle.copyWith(
-                              // fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                              color: Colors.black),
-                        )),
-                      ),
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Text(widget.jobs.languages.toString()),
+                            ],
+                          )),
                     ],
                   ),
                 ),
