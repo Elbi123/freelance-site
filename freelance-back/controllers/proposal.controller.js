@@ -9,6 +9,7 @@ const sendEmail = require("../utils/handleSendingEmail");
 const sendEmailToFreelancer = require("../utils/handleFreelancerEmail");
 const generateRandomId = require("../utils/generateRandomId");
 const BadRequestError = require("../utils/error");
+const APIFeatures = require("../utils/apiFeatures");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -38,13 +39,14 @@ const upload = multer({ storage: storage, fileFilter: multerFilter }).single(
 );
 
 exports.getAllProposals = async (req, res) => {
-    const { status } = req.query;
-    let proposals;
-    if (status) {
-        proposals = await Proposal.find({ status });
-    } else {
-        proposals = await Proposal.find({});
-    }
+    const features = new APIFeatures(Proposal.find({}), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const proposals = await features.query;
+
     res.status(200).json({
         status: "success",
         proposals,
