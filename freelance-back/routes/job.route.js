@@ -9,6 +9,7 @@ router.get("/experiences", jobController.getExperiences);
 
 router
     .get("/:userName/jobs", jobController.getCustomerJob)
+    .get("/:userName/savedJobs", jobController.getSavedJobs)
     .post(
         "/:userName/jobs",
         [inputValidation.checkEmptyJobValidation],
@@ -17,7 +18,8 @@ router
 
 router
     .get("/:slug", jobController.getJobBySlug)
-    .patch("/:id", jobController.updateJob)
+    .post("/:username/jobs/:id", jobController.saveJobForFreelancer)
+    .patch("/:username/jobs/:id", jobController.updateJob)
     .delete("/:username/jobs/:id", jobController.deleteJob);
 
 module.exports = router;
