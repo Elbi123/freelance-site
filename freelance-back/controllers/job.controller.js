@@ -437,6 +437,15 @@ exports.getSavedJobs = catchAsync(async (req, res, next) => {
     }
 });
 
+exports.searchJob = catchAsync(async (req, res, next) => {
+    const search = req.query.search;
+    const jobs = await Job.find({ $text: { $search: search } });
+    res.status(200).json({
+        status: "successs",
+        jobs,
+    });
+});
+
 // job statuses
 
 // "open"

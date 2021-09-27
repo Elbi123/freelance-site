@@ -715,3 +715,12 @@ const handleJobDecline = async (status, proposal, id, res, next) => {
         );
     }
 };
+
+exports.searchProposalByStatus = catchAsync(async (req, res, next) => {
+    const search = req.query.search;
+    const proposals = await Proposal.find({ $text: { $search: search } });
+    res.status(200).json({
+        status: "successs",
+        proposals,
+    });
+});

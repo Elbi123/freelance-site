@@ -4,6 +4,7 @@ const proposalController = require("../controllers/proposal.controller");
 const router = express.Router();
 
 router.get("/proposals", proposalController.getAllProposals);
+router.get("/proposals/search", proposalController.searchProposalByStatus);
 router.get("/:username/proposals", proposalController.getUserProposals);
 router
     .route("/:username/jobs/:slug/")
