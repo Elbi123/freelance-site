@@ -38,6 +38,14 @@ const jobSchema = new Schema(
             },
             default: "fixed-price",
         },
+        experienceLevelJob: {
+            type: String,
+            enum: {
+                values: ["entry", "intermidiate", "advanced"],
+                message: "{VALUE} is not supported",
+            },
+            default: "entry",
+        },
         status: {
             type: String,
             enum: {
