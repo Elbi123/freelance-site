@@ -163,10 +163,10 @@ exports.createJob = catchAsync(async (req, res, next) => {
     }
 });
 
-exports.getCustomerJob = async (req, res) => {
+exports.getCustomerJob = catchAsync(async (req, res) => {
     const user = await User.findOne({ userName: req.params.userName });
     if (!user) {
-        return next(new BadRequestError("User Not Found"));
+        return next(new BadRequestError("User Not Found", 404));
     }
     const customer = await Customer.findOne({ _id: user.customer }).populate(
         "user jobs"
@@ -177,7 +177,7 @@ exports.getCustomerJob = async (req, res) => {
     res.json({
         customer,
     });
-};
+});
 
 exports.updateJob = catchAsync(async (req, res, next) => {
     const id = req.params.id;
@@ -324,3 +324,20 @@ exports.deleteJob = catchAsync(async (req, res, next) => {
         });
     }
 });
+
+// job statuses
+
+// "open"
+// -->> when first the job is posted
+
+// "in-progress"
+// -->> when the proposal is "approved" and job is being executed
+
+// "submitted"
+// -->> when job is submitted after finishing
+
+// "approved"
+// -->> when the customer approves the submitted job
+
+// closed
+// --> when the client closes the job after the payment transaction
