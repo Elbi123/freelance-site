@@ -85,5 +85,9 @@ exports.uploadFreelanceProfilePic = catchAsync(async (req, res, next) => {
                 });
             });
         }
+    } else {
+        return next(
+            new BadRequestError("You should register as freelancer", 403)
+        );
     }
 });

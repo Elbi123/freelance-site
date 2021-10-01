@@ -75,6 +75,11 @@ const jobSchema = new Schema(
         proposals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proposal" }],
 
         customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+
+        // job submission
+        jobSubmissions: [
+            { type: mongoose.Schema.Types.ObjectId, ref: "JobSubmission" },
+        ],
     },
     { timestamps: true }
 );
