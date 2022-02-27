@@ -14,6 +14,7 @@ const customerRouter = require("./routes/customer.route");
 const freelancerRouter = require("./routes/freelancer.route");
 const proposalRouter = require("./routes/proposal.route");
 const ticketRouter = require("./routes/ticket.route");
+const jobSubmissionRouter = require("./routes/jobSubmission.route");
 const BadRequestError = require("./utils/error");
 const errorController = require("./controllers/error.controller");
 
@@ -26,17 +27,17 @@ if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"));
 }
 
-const limiter = rateLimit({
-    max: 5,
-    windowMs: 60 * 60 * 1000,
-    message: "Too many requests from this IP, please try again in an hour!",
-});
+// const limiter = rateLimit({
+//     max: 5,
+//     windowMs: 60 * 60 * 1000,
+//     message: "Too many requests from this IP, please try again in an hour!",
+// });
 
-const limiter2 = rateLimit({
-    max: 100,
-    windowMs: 60 * 60 * 1000,
-    message: "Too many requests from this IP, please try again in an hour!",
-});
+// const limiter2 = rateLimit({
+//     max: 100,
+//     windowMs: 60 * 60 * 1000,
+//     message: "Too many requests from this IP, please try again in an hour!",
+// });
 
 // app.use("/auth", limiter);
 
@@ -57,8 +58,9 @@ app.use(express.static(`${__dirname}/public`));
 
 app.use("/users", userRouter);
 app.use("/", freelancerRouter);
-app.use("/auth", limiter, authRouter);
-app.use("/jobs", limiter2, jobRouter);
+app.use("/auth", authRouter);
+app.use("/jobs", jobRouter);
+app.use("/jobs", jobSubmissionRouter);
 app.use("/customers", jobRouter);
 app.use("/freelancers", jobRouter);
 app.use("/potential", customerRouter);

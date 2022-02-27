@@ -35,13 +35,27 @@ exports.allowAdminOrSuperAdmin = catchAsync(async (req, res, next) => {
             return next();
         }
     }
-    return next(new BadRequestError("Unauthorized action"));
+    return next(new BadRequestError("Unauthorized action", 403));
 });
 
-exports.isFreelancer = catchAsync(async (req, res) => {
-    next();
+exports.isFreelancer = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.userId);
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    if (user.userType === "freelancer") {
+        next();
+    }
+    return next(new BadRequestError("Unauthorized action", 403));
 });
 
 exports.isCustomerOrClient = catchAsync(async (req, res, next) => {
-    next();
+    const user = await User.findById(req.userId);
+    if (!user) {
+        return next(new BadRequestError("User Not Found", 404));
+    }
+    if (user.userType === "customer" || user.userType === "client") {
+        next();
+    }
+    return next(new BadRequestError("Unauthorized action", 403));
 });

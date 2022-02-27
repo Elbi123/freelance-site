@@ -87,7 +87,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 
     await newUser.save().then((user) => {
         res.json({
-            user,
+            status: "success",
+            message: "User has successfully registered",
+            newUser,
         });
     });
 });
@@ -112,7 +114,7 @@ exports.login = catchAsync(async (req, res, next) => {
     if (!user || !(await user.correctPassword(password, user.password))) {
         if (emailOrUsername.includes("@")) {
             return next(
-                new BadRequestError("Incorrect email or password", 401)
+                new BadRequestError("Incorrect email or password", 400)
             );
         } else {
             return next(
